@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le métier de testeur fonctionnel — Formation débutant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d1a;
+    --bg2:#13132a;
+    --accent:#6C63FF;
+    --accent2:#8c84ff;
+    --txt:#FFFFFF;
+    --txt2:#E0E0E0;
+    --muted:#9a9ab5;
+    --line:rgba(108,99,255,.25);
+    --card:rgba(255,255,255,.04);
+    --ok:#27AE60;
+    --warn:#F5A623;
+    --bad:#E74C3C;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);font-family:'Poppins',sans-serif;color:var(--txt)}
+
+  .slide{
+    position:fixed;inset:0;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    padding:6vh 8vw;
+    opacity:0;
+    transition:opacity .35s ease;
+  }
+  .slide.active{display:flex;opacity:1}
+
+  /* Progress + counter + buttons */
+  #progress-wrap{position:fixed;top:0;left:0;width:100%;height:5px;background:rgba(255,255,255,.06);z-index:50}
+  #progress{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s ease}
+  #counter{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--muted);z-index:50;letter-spacing:.5px}
+  .nav-btn{position:fixed;bottom:14px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:18px;cursor:pointer;z-index:50;transition:.2s;display:flex;align-items:center;justify-content:center}
+  .nav-btn:hover{background:var(--accent);border-color:var(--accent)}
+  #prev{right:74px}#next{right:24px}
+  .brand-foot{position:fixed;bottom:18px;left:28px;font-size:12px;color:var(--muted);z-index:50}
+
+  h1,h2,h3{font-weight:700;line-height:1.15}
+  .accent{color:var(--accent2)}
+
+  /* COVER */
+  .slide-cover{background:radial-gradient(circle at 25% 20%,rgba(108,99,255,.22),transparent 55%),var(--bg)}
+  .cover-kicker{display:inline-block;border:1px solid var(--line);color:var(--accent2);padding:7px 16px;border-radius:30px;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:28px}
+  .slide-cover h1{font-size:clamp(34px,5.5vw,68px);font-weight:800;margin-bottom:18px}
+  .slide-cover .sub{font-size:clamp(16px,2vw,23px);color:var(--txt2);font-weight:300;max-width:780px;line-height:1.5}
+  .cover-meta{margin-top:40px;display:flex;flex-wrap:wrap;gap:14px}
+  .cover-meta span{background:var(--card);border:1px solid var(--line);padding:9px 16px;border-radius:10px;font-size:14px;color:var(--txt2)}
+  .cover-mail{margin-top:34px;font-size:15px;color:var(--accent2);font-weight:500}
+
+  /* DIVIDER */
+  .slide-divider{background:linear-gradient(135deg,var(--bg2),var(--bg))}
+  .section-tag{font-size:15px;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);margin-bottom:18px;font-weight:600}
+  .section-title{font-size:clamp(30px,5vw,58px);font-weight:800;max-width:1000px}
+  .section-sub{margin-top:18px;font-size:clamp(15px,1.8vw,20px);color:var(--muted);font-weight:300}
+  .section-num{position:absolute;right:7vw;top:50%;transform:translateY(-50%);font-size:clamp(120px,22vw,300px);font-weight:800;color:rgba(108,99,255,.08);line-height:1}
+
+  /* CONTENT */
+  .slide-tag{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:14px;font-weight:600}
+  .slide-title{font-size:clamp(24px,3.4vw,40px);font-weight:700;margin-bottom:26px;max-width:1050px}
+  .points{list-style:none;display:flex;flex-direction:column;gap:14px;max-width:1000px}
+  .points li{position:relative;padding-left:34px;font-size:clamp(15px,1.7vw,20px);color:var(--txt2);line-height:1.45;font-weight:300}
+  .points li::before{content:"";position:absolute;left:0;top:9px;width:14px;height:14px;border-radius:4px;background:var(--accent);transform:rotate(45deg)}
+  .points li b{color:var(--txt);font-weight:600}
+  .note{margin-top:28px;background:var(--card);border-left:3px solid var(--accent);padding:16px 20px;border-radius:0 10px 10px 0;font-size:15px;color:var(--txt2);max-width:1000px;line-height:1.5}
+  .note b{color:var(--accent2)}
+
+  /* GRID CARDS */
+  .grid{display:grid;gap:18px;margin-top:10px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;transition:.2s}
+  .card h3{font-size:18px;margin-bottom:8px;color:var(--txt)}
+  .card p{font-size:14.5px;color:var(--muted);line-height:1.45;font-weight:300}
+  .card .ico{font-size:26px;margin-bottom:10px;display:block}
+
+  /* STEPS / FLOW */
+  .flow{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;margin-top:14px}
+  .flow .step{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative}
+  .flow .step .n{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;margin-bottom:10px}
+  .flow .step h4{font-size:15.5px;margin-bottom:6px}
+  .flow .step p{font-size:13px;color:var(--muted);font-weight:300;line-height:1.4}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:15px}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+  th{color:var(--accent2);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:1px}
+  td{color:var(--txt2);font-weight:300}
+  td b{color:var(--txt);font-weight:600}
+
+  /* CODE / TEST CASE BOX */
+  .codebox{background:#0a0a16;border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-top:16px;font-family:'Courier New',monospace;font-size:14.5px;color:var(--txt2);line-height:1.7;max-width:1000px}
+  .codebox .k{color:var(--accent2);font-weight:600}
+  .codebox .g{color:var(--ok)}
+
+  /* EXERCICE */
+  .slide-exercice{background:linear-gradient(135deg,rgba(108,99,255,.14),var(--bg))}
+  .exo-tag{display:inline-block;background:var(--accent);color:#fff;padding:7px 16px;border-radius:30px;font-size:13px;font-weight:600;margin-bottom:18px;letter-spacing:.5px}
+  .exo-title{font-size:clamp(24px,3.4vw,38px);font-weight:700;margin-bottom:10px}
+  .exo-meta{color:var(--accent2);font-size:15px;margin-bottom:22px;font-weight:500}
+  .exo-steps{list-style:none;counter-reset:exo;display:flex;flex-direction:column;gap:13px;max-width:980px}
+  .exo-steps li{counter-increment:exo;position:relative;padding-left:42px;font-size:clamp(15px,1.7vw,19px);color:var(--txt2);font-weight:300;line-height:1.45}
+  .exo-steps li::before{content:counter(exo);position:absolute;left:0;top:-2px;width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+  .exo-livrable{margin-top:24px;background:var(--card);border:1px dashed var(--accent);border-radius:10px;padding:14px 20px;font-size:15px;color:var(--txt2)}
+  .exo-livrable b{color:var(--accent2)}
+
+  /* RECAP */
+  .recap-list{display:flex;flex-direction:column;gap:16px;max-width:1000px;margin-top:8px}
+  .recap-list .r{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px}
+  .recap-list .r .num{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .recap-list .r p{font-size:16px;color:var(--txt2);font-weight:300;line-height:1.45}
+  .recap-list .r p b{color:var(--txt);font-weight:600}
+
+  /* CTA */
+  .slide-cta{background:radial-gradient(circle at 70% 30%,rgba(108,99,255,.25),transparent 55%),var(--bg);align-items:flex-start}
+  .slide-cta h2{font-size:clamp(38px,6vw,72px);font-weight:800;margin-bottom:16px}
+  .slide-cta p{font-size:20px;color:var(--txt2);font-weight:300;margin-bottom:34px}
+  .cta-links{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:26px}
+  .cta-links a{background:var(--card);border:1px solid var(--line);color:var(--accent2);text-decoration:none;padding:13px 22px;border-radius:12px;font-size:16px;font-weight:500;transition:.2s}
+  .cta-links a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .cta-socials{color:var(--muted);font-size:15px}
+
+  /* BIO */
+  .bio-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:center}
+  .bio-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px;text-align:center}
+  .bio-card .avatar{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:800}
+  .bio-card h3{font-size:24px;margin-bottom:6px}
+  .bio-card .role{color:var(--accent2);font-size:15px}
+  .bio-points{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .bio-points li{position:relative;padding-left:28px;font-size:16.5px;color:var(--txt2);font-weight:300;line-height:1.4}
+  .bio-points li::before{content:"▹";position:absolute;left:0;color:var(--accent2);font-size:18px}
+  .bio-points li b{color:var(--txt);font-weight:600}
+
+  .tag-pill{display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600}
+  .pill-ok{background:rgba(39,174,96,.15);color:#5fd99a;border:1px solid rgba(39,174,96,.3)}
+  .pill-warn{background:rgba(245,166,35,.15);color:#f5be5e;border:1px solid rgba(245,166,35,.3)}
+  .pill-bad{background:rgba(231,76,60,.15);color:#f08070;border:1px solid rgba(231,76,60,.3)}
+
+  @media(max-width:760px){
+    .slide{padding:8vh 7vw}
+    .g2,.g3,.g4{grid-template-columns:1fr}
+    .bio-grid{grid-template-columns:1fr;gap:24px}
+    .brand-foot{display:none}
+    .section-num{opacity:.5}
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-wrap"><div id="progress"></div></div>
+
+<!-- 1. COVER -->
+<section class="slide slide-cover active">
+  <span class="cover-kicker">Formation professionnelle · Niveau débutant</span>
+  <h1>Le métier de <span class="accent">testeur fonctionnel</span></h1>
+  <p class="sub">Comprendre, concevoir, exécuter et rapporter des tests logiciels — et se préparer au test à l'ère de l'intelligence artificielle.</p>
+  <div class="cover-meta">
+    <span>🎯 Journée complète</span>
+    <span>👥 Débutants en QA</span>
+    <span>🛠️ 70 slides · exercices pratiques</span>
+    <span>🏢 Digital House Company</span>
+  </div>
+  <div class="cover-mail">hello@dhcompany.pro</div>
+</section>
+
+<!-- 2. QUI JE SUIS -->
+<section class="slide">
+  <div class="slide-tag">Votre formateur</div>
+  <div class="bio-grid">
+    <div class="bio-card">
+      <div class="avatar">JK</div>
+      <h3>Joël Parfait Kuate</h3>
+      <div class="role">Ingénieur IA · Consultant & Formateur certifié</div>
+    </div>
+    <ul class="bio-points">
+      <li><b>Master</b> en Architecture Logicielle & Big Data</li>
+      <li><b>7+ ans</b> de formation — <b>600+ organisations</b> formées en Belgique</li>
+      <li>Fondateur de <b>Digital House Company</b> (Belgique) & MS JOYCE SARL (Cameroun)</li>
+      <li>Auteur de <b>« L'Afrique et l'Intelligence Artificielle »</b> (2024)</li>
+      <li>Chargé de Mission — Ambassade de Côte d'Ivoire au Benelux</li>
+      <li>Projets : ia4africa.org · FormIA · Jurisis.be · Indibot.be</li>
+    </ul>
+  </div>
+  <div class="note">Mon approche : du concret, des cas réels, et des compétences immédiatement utilisables dès la sortie de la salle. <b>hello@dhcompany.pro</b></div>
+</section>
+
+<!-- 3. AGENDA -->
+<section class="slide">
+  <div class="slide-tag">Programme de la journée</div>
+  <h2 class="slide-title">Ce que vous saurez faire ce soir</h2>
+  <div class="grid g3">
+    <div class="card"><span class="ico">🧭</span><h3>1 · Le métier</h3><p>Comprendre le rôle, les profils et la place du testeur dans une équipe.</p></div>
+    <div class="card"><span class="ico">📐</span><h3>2 · Les fondamentaux</h3><p>Principes, vocabulaire et cycles de vie du logiciel et du test.</p></div>
+    <div class="card"><span class="ico">🗂️</span><h3>3 · Types & niveaux</h3><p>Savoir distinguer chaque type de test et quand l'utiliser.</p></div>
+    <div class="card"><span class="ico">✍️</span><h3>4 · Concevoir</h3><p>Transformer un besoin en cas de test rigoureux.</p></div>
+    <div class="card"><span class="ico">🐞</span><h3>5 · Exécuter & rapporter</h3><p>Jouer un test, rédiger un bon rapport de bug.</p></div>
+    <div class="card"><span class="ico">🔍</span><h3>6 · Test exploratoire</h3><p>Trouver les bugs que les scripts ne voient pas.</p></div>
+    <div class="card"><span class="ico">🧰</span><h3>7 · Les outils</h3><p>Gestion de test, suivi de bug, DevTools, API, automatisation.</p></div>
+    <div class="card"><span class="ico">🤖</span><h3>8 · Test & IA</h3><p>Claude Code, MCP et l'IA comme copilote du testeur.</p></div>
+    <div class="card"><span class="ico">🚀</span><h3>9 · Démarrer sa carrière</h3><p>Certification, portfolio, premiers pas concrets.</p></div>
+  </div>
+</section>
+
+<!-- ============ MODULE 1 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">01</div>
+  <div class="section-tag">Module 1</div>
+  <h1 class="section-title">Comprendre le métier de testeur</h1>
+  <p class="section-sub">Qui fait quoi, et pourquoi ce métier est devenu essentiel</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le point de départ</div>
+  <h2 class="slide-title">Qu'est-ce que tester un logiciel ?</h2>
+  <ul class="points">
+    <li>Tester, c'est <b>vérifier qu'un logiciel fait ce qu'il doit faire</b> — et détecter quand ce n'est pas le cas.</li>
+    <li>Ce n'est pas chercher à « casser pour casser », mais <b>donner confiance</b> avant une mise en production.</li>
+    <li>Le testeur compare deux choses : <b>le comportement attendu</b> (la spécification) et <b>le comportement réel</b> (ce que fait le logiciel).</li>
+    <li>Quand les deux divergent, on tient une <b>anomalie</b> à documenter.</li>
+  </ul>
+  <div class="note"><b>Idée clé :</b> le test ne crée pas la qualité, il la <b>mesure</b> et la <b>révèle</b>. La qualité se construit en amont, dès la conception.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Pourquoi c'est crucial</div>
+  <h2 class="slide-title">Le coût d'un bug grandit avec le temps</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Conception</h4><p>Bug corrigé : coût quasi nul. Une phrase à reformuler.</p></div>
+    <div class="step"><div class="n">2</div><h4>Développement</h4><p>Coût faible. Quelques lignes de code à modifier.</p></div>
+    <div class="step"><div class="n">3</div><h4>Test</h4><p>Coût modéré. Le bug est isolé avant le client.</p></div>
+    <div class="step"><div class="n">4</div><h4>Production</h4><p>Coût élevé : clients impactés, image, correctifs urgents.</p></div>
+  </div>
+  <div class="note">Un défaut trouvé en production peut coûter <b>jusqu'à 100 fois plus cher</b> qu'en phase de conception. Tester tôt, c'est économiser. C'est le principe du <b>« shift left »</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">La distinction fondatrice</div>
+  <h2 class="slide-title">Test fonctionnel vs non-fonctionnel</h2>
+  <table>
+    <tr><th>Test fonctionnel</th><th>Test non-fonctionnel</th></tr>
+    <tr><td><b>Que fait</b> le logiciel ?</td><td><b>Comment</b> le logiciel se comporte ?</td></tr>
+    <tr><td>« Le bouton Payer enregistre-t-il la commande ? »</td><td>« La page se charge-t-elle en moins de 2 s ? »</td></tr>
+    <tr><td>Vérifie les <b>règles métier</b> et les fonctionnalités</td><td>Vérifie <b>performance, sécurité, ergonomie</b></td></tr>
+    <tr><td>Exemples : connexion, panier, recherche</td><td>Exemples : charge, robustesse, accessibilité</td></tr>
+  </table>
+  <div class="note">Cette formation se concentre sur le <b>test fonctionnel</b> — le cœur du métier de testeur débutant et la porte d'entrée du métier.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Sa place dans l'équipe</div>
+  <h2 class="slide-title">Le testeur ne travaille jamais seul</h2>
+  <div class="grid g3">
+    <div class="card"><span class="ico">📋</span><h3>Product Owner</h3><p>Définit le besoin. Le testeur l'aide à clarifier les critères d'acceptation.</p></div>
+    <div class="card"><span class="ico">💻</span><h3>Développeur</h3><p>Code la fonctionnalité. Le testeur lui remonte les anomalies de façon claire.</p></div>
+    <div class="card"><span class="ico">🎨</span><h3>Designer / UX</h3><p>Conçoit les écrans. Le testeur vérifie la conformité au design.</p></div>
+    <div class="card"><span class="ico">🚀</span><h3>DevOps</h3><p>Gère les déploiements. Le testeur valide avant chaque mise en ligne.</p></div>
+    <div class="card"><span class="ico">👥</span><h3>QA Lead</h3><p>Pilote la stratégie de test et coordonne l'équipe qualité.</p></div>
+    <div class="card"><span class="ico">🙋</span><h3>Utilisateur final</h3><p>Le vrai juge. Le testeur défend son expérience à chaque étape.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Les profils du métier</div>
+  <h2 class="slide-title">Vers quoi peut-on évoluer ?</h2>
+  <ul class="points">
+    <li><b>Testeur manuel / fonctionnel</b> — exécute et conçoit des tests sans coder. Le point d'entrée idéal.</li>
+    <li><b>Analyste de test</b> — analyse les exigences et conçoit la stratégie de test.</li>
+    <li><b>Testeur automaticien (SDET)</b> — code des tests automatisés (Selenium, Playwright, Cypress).</li>
+    <li><b>QA Lead / Test Manager</b> — pilote l'équipe, les plans de test et la qualité globale.</li>
+    <li><b>QA Engineer spécialisé</b> — performance, sécurité, mobile, API.</li>
+  </ul>
+  <div class="note">On commence presque toujours par le <b>test manuel</b>. C'est là qu'on apprend à <b>raisonner qualité</b> avant d'automatiser quoi que ce soit.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le profil idéal</div>
+  <h2 class="slide-title">Compétences du bon testeur</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">🧠</span><h3>Savoir-faire (hard skills)</h3>
+      <p>Lire une spécification · concevoir des cas de test · rédiger un rapport de bug · connaître un outil de gestion de test · notions de SQL, API, navigateur.</p>
+    </div>
+    <div class="card">
+      <span class="ico">💬</span><h3>Savoir-être (soft skills)</h3>
+      <p>Curiosité · rigueur · esprit critique · patience · sens du détail · communication claire et diplomate avec les développeurs.</p>
+    </div>
+  </div>
+  <div class="note">La compétence n°1 d'un testeur n'est pas technique : c'est la <b>curiosité méthodique</b> — l'envie de se demander « et si… ? » à chaque écran.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Débouchés</div>
+  <h2 class="slide-title">Un métier qui recrute</h2>
+  <ul class="points">
+    <li>La qualité logicielle est <b>incontournable</b> : banque, e-commerce, santé, industrie, administration — tous ont besoin de testeurs.</li>
+    <li>C'est un <b>métier accessible sans diplôme d'ingénieur</b> : une certification et de la rigueur suffisent pour débuter.</li>
+    <li>Forte demande de profils capables de <b>combiner test manuel + culture de l'automatisation et de l'IA</b>.</li>
+    <li>Évolution naturelle vers l'automatisation, le management QA ou l'analyse fonctionnelle.</li>
+  </ul>
+  <div class="note">Le testeur qui sait aussi <b>collaborer avec l'IA</b> (module 8) prend une longueur d'avance décisive en 2026.</div>
+</section>
+
+<!-- ============ MODULE 2 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">02</div>
+  <div class="section-tag">Module 2</div>
+  <h1 class="section-title">Les fondamentaux de la qualité</h1>
+  <p class="section-sub">Le vocabulaire et les principes que tout testeur doit maîtriser</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Parler le bon langage</div>
+  <h2 class="slide-title">Erreur, défaut, défaillance</h2>
+  <table>
+    <tr><th>Terme</th><th>Définition</th><th>Exemple</th></tr>
+    <tr><td><b>Erreur</b> (error)</td><td>Action humaine qui produit un résultat incorrect</td><td>Le dev se trompe dans une formule</td></tr>
+    <tr><td><b>Défaut</b> (defect / bug)</td><td>L'imperfection introduite dans le code</td><td>La formule erronée dans le programme</td></tr>
+    <tr><td><b>Défaillance</b> (failure)</td><td>Le comportement visible incorrect</td><td>Le total du panier est faux à l'écran</td></tr>
+  </table>
+  <div class="note">Un testeur observe des <b>défaillances</b>, en déduit des <b>défauts</b>, qui viennent d'une <b>erreur</b> humaine. Bien nommer = bien communiquer.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le socle ISTQB</div>
+  <h2 class="slide-title">Les 7 principes du test (1/2)</h2>
+  <ul class="points">
+    <li><b>1 · Le test révèle des défauts</b>, mais ne prouve jamais leur absence totale.</li>
+    <li><b>2 · Tester tout est impossible</b> : on priorise selon le risque, jamais l'exhaustivité.</li>
+    <li><b>3 · Tester tôt</b> fait gagner du temps et de l'argent (shift left).</li>
+    <li><b>4 · Les défauts se regroupent</b> : quelques modules concentrent la majorité des bugs.</li>
+  </ul>
+  <div class="note">Ces principes viennent du référentiel <b>ISTQB Foundation</b>, la certification de référence pour débuter (voir module 9).</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le socle ISTQB</div>
+  <h2 class="slide-title">Les 7 principes du test (2/2)</h2>
+  <ul class="points">
+    <li><b>5 · Paradoxe du pesticide</b> : répéter les mêmes tests finit par ne plus rien trouver. Il faut les renouveler.</li>
+    <li><b>6 · Le test dépend du contexte</b> : on ne teste pas un jeu vidéo comme un logiciel bancaire.</li>
+    <li><b>7 · L'illusion de l'absence d'erreurs</b> : un logiciel sans bug mais inutilisable reste un échec.</li>
+  </ul>
+  <div class="note">Retenez surtout le principe 7 : tester la conformité ne suffit pas, il faut tester <b>l'utilité réelle</b> pour l'utilisateur.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le contexte projet</div>
+  <h2 class="slide-title">Le cycle de vie du logiciel (SDLC)</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Besoin</h4><p>Recueil et analyse des exigences.</p></div>
+    <div class="step"><div class="n">2</div><h4>Conception</h4><p>Architecture et maquettes.</p></div>
+    <div class="step"><div class="n">3</div><h4>Développement</h4><p>Écriture du code.</p></div>
+    <div class="step"><div class="n">4</div><h4>Test</h4><p>Validation de la qualité.</p></div>
+    <div class="step"><div class="n">5</div><h4>Déploiement</h4><p>Mise en production.</p></div>
+    <div class="step"><div class="n">6</div><h4>Maintenance</h4><p>Corrections et évolutions.</p></div>
+  </div>
+  <div class="note">Le test n'est pas une étape isolée à la fin : dans les approches modernes, il <b>accompagne chaque phase</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Deux grandes approches</div>
+  <h2 class="slide-title">Cycle en V vs Agile</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">📐</span><h3>Cycle en V</h3>
+      <p>Linéaire. Chaque phase de conception a sa phase de test miroir. Tout est planifié en amont. Adapté aux projets stables et réglementés.</p>
+    </div>
+    <div class="card">
+      <span class="ico">🔄</span><h3>Agile / Scrum</h3>
+      <p>Itératif. On livre par petits incréments (sprints). Le testeur est intégré à l'équipe dès le début. C'est le standard aujourd'hui.</p>
+    </div>
+  </div>
+  <div class="note">En Agile, le testeur teste <b>en continu</b>, sprint après sprint — il ne reçoit plus le logiciel « fini » à la toute fin.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le processus structuré</div>
+  <h2 class="slide-title">Le cycle de vie du test (STLC)</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Analyse</h4><p>Comprendre les exigences à tester.</p></div>
+    <div class="step"><div class="n">2</div><h4>Planification</h4><p>Stratégie, périmètre, ressources.</p></div>
+    <div class="step"><div class="n">3</div><h4>Conception</h4><p>Écriture des cas de test.</p></div>
+    <div class="step"><div class="n">4</div><h4>Exécution</h4><p>Jouer les tests, consigner les résultats.</p></div>
+    <div class="step"><div class="n">5</div><h4>Clôture</h4><p>Bilan, métriques, leçons apprises.</p></div>
+  </div>
+  <div class="note">Ce cycle est le <b>fil rouge</b> de la suite de la formation : les modules 4 et 5 détaillent la conception et l'exécution.</div>
+</section>
+
+<!-- ============ MODULE 3 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">03</div>
+  <div class="section-tag">Module 3</div>
+  <h1 class="section-title">Les types et niveaux de test</h1>
+  <p class="section-sub">Savoir quoi tester, à quel moment, et comment</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">La pyramide des niveaux</div>
+  <h2 class="slide-title">4 niveaux, du plus petit au plus large</h2>
+  <ul class="points">
+    <li><b>Unitaire</b> — teste une brique de code isolée. Réalisé par les développeurs.</li>
+    <li><b>Intégration</b> — vérifie que plusieurs briques fonctionnent ensemble.</li>
+    <li><b>Système</b> — teste l'application complète, de bout en bout. Cœur du testeur fonctionnel.</li>
+    <li><b>Acceptation (UAT)</b> — l'utilisateur ou le client valide que le besoin est satisfait.</li>
+  </ul>
+  <div class="note">Le testeur fonctionnel débutant intervient surtout aux niveaux <b>système</b> et <b>acceptation</b> — là où l'on raisonne « utilisateur ».</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Les types fonctionnels</div>
+  <h2 class="slide-title">Les tests que vous jouerez le plus</h2>
+  <div class="grid g2">
+    <div class="card"><span class="ico">💨</span><h3>Smoke test</h3><p>Vérifie que les fonctions vitales marchent. « L'app démarre-t-elle ? » À jouer avant tout le reste.</p></div>
+    <div class="card"><span class="ico">🩺</span><h3>Sanity test</h3><p>Contrôle rapide et ciblé après une petite correction.</p></div>
+    <div class="card"><span class="ico">🔁</span><h3>Test de régression</h3><p>Vérifie qu'une nouveauté n'a pas cassé l'existant. Essentiel.</p></div>
+    <div class="card"><span class="ico">🔗</span><h3>Test de bout en bout (E2E)</h3><p>Simule un parcours utilisateur complet, de A à Z.</p></div>
+  </div>
+  <div class="note">La <b>régression</b> est le pain quotidien du testeur : à chaque nouvelle version, on revérifie que rien d'ancien n'est cassé.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Deux visions du logiciel</div>
+  <h2 class="slide-title">Boîte noire vs boîte blanche</h2>
+  <table>
+    <tr><th>Boîte noire</th><th>Boîte blanche</th></tr>
+    <tr><td>On teste <b>sans voir le code</b></td><td>On teste <b>en connaissant le code</b></td></tr>
+    <tr><td>Vision « utilisateur » : entrées → sorties</td><td>Vision « développeur » : chemins internes</td></tr>
+    <tr><td>Le testeur fonctionnel travaille ici</td><td>Plutôt le développeur ou le SDET</td></tr>
+    <tr><td>« Si je saisis ça, qu'obtient-on ? »</td><td>« Quelles lignes de code sont exécutées ? »</td></tr>
+  </table>
+  <div class="note">Le testeur fonctionnel est avant tout un spécialiste de la <b>boîte noire</b> : il pense comme l'utilisateur, pas comme la machine.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Manuel ou automatisé ?</div>
+  <h2 class="slide-title">Deux approches complémentaires</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">✋</span><h3>Test manuel</h3>
+      <p>Un humain joue les tests. Idéal pour l'exploratoire, l'ergonomie, les nouvelles fonctions. Flexible mais lent à répéter.</p>
+    </div>
+    <div class="card">
+      <span class="ico">⚙️</span><h3>Test automatisé</h3>
+      <p>Un script rejoue les tests. Idéal pour la régression répétitive. Rapide mais coûteux à créer et maintenir.</p>
+    </div>
+  </div>
+  <div class="note">On <b>automatise ce qui est stable et répétitif</b>, on garde l'humain pour ce qui demande du jugement. L'IA (module 8) change cet équilibre.</div>
+</section>
+
+<!-- ============ MODULE 4 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">04</div>
+  <div class="section-tag">Module 4</div>
+  <h1 class="section-title">Concevoir les tests</h1>
+  <p class="section-sub">Le cœur du métier : transformer un besoin en cas de test</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Du flou au précis</div>
+  <h2 class="slide-title">Du besoin au cas de test</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Exigence</h4><p>« L'utilisateur doit pouvoir se connecter. »</p></div>
+    <div class="step"><div class="n">2</div><h4>Scénario</h4><p>« Connexion avec un mot de passe valide / invalide. »</p></div>
+    <div class="step"><div class="n">3</div><h4>Cas de test</h4><p>Étapes précises + résultat attendu, rejouables.</p></div>
+  </div>
+  <div class="note">Un bon cas de test est <b>reproductible par n'importe qui</b>, sans avoir besoin de poser de question à son auteur.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">L'anatomie</div>
+  <h2 class="slide-title">De quoi est fait un cas de test ?</h2>
+  <ul class="points">
+    <li><b>Identifiant</b> — un numéro unique (ex. TC-LOGIN-01).</li>
+    <li><b>Titre</b> — clair et explicite.</li>
+    <li><b>Préconditions</b> — l'état requis avant de commencer.</li>
+    <li><b>Étapes</b> — les actions à réaliser, numérotées.</li>
+    <li><b>Données de test</b> — les valeurs à saisir.</li>
+    <li><b>Résultat attendu</b> — ce qui doit se produire.</li>
+    <li><b>Résultat réel + statut</b> — rempli à l'exécution (Passed / Failed / Blocked).</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Exemple concret</div>
+  <h2 class="slide-title">Un cas de test rédigé</h2>
+  <div class="codebox">
+<span class="k">ID :</span> TC-LOGIN-02<br>
+<span class="k">Titre :</span> Connexion avec mot de passe incorrect<br>
+<span class="k">Préconditions :</span> Compte « julie@mail.com » existant et actif<br>
+<span class="k">Étapes :</span><br>
+&nbsp;&nbsp;1. Ouvrir la page de connexion<br>
+&nbsp;&nbsp;2. Saisir « julie@mail.com »<br>
+&nbsp;&nbsp;3. Saisir le mot de passe « mauvais123 »<br>
+&nbsp;&nbsp;4. Cliquer sur « Se connecter »<br>
+<span class="k">Résultat attendu :</span> <span class="g">Message « Identifiants incorrects » + accès refusé</span><br>
+<span class="k">Statut :</span> _________ (rempli à l'exécution)
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Techniques de conception</div>
+  <h2 class="slide-title">Partitions d'équivalence</h2>
+  <ul class="points">
+    <li>Idée : <b>regrouper les valeurs qui se comportent pareil</b> et n'en tester qu'une par groupe.</li>
+    <li>Exemple — un champ « âge » qui accepte 18 à 99 :</li>
+    <li>Classe invalide basse : <b>moins de 18</b> → tester avec 10.</li>
+    <li>Classe valide : <b>18 à 99</b> → tester avec 40.</li>
+    <li>Classe invalide haute : <b>plus de 99</b> → tester avec 150.</li>
+  </ul>
+  <div class="note">3 tests bien choisis remplacent des centaines de tests inutiles. C'est l'application directe du principe « tester tout est impossible ».</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Techniques de conception</div>
+  <h2 class="slide-title">Analyse des valeurs limites</h2>
+  <ul class="points">
+    <li>Les bugs adorent se cacher <b>aux frontières</b> des plages de valeurs.</li>
+    <li>Pour un champ « âge » de 18 à 99, on teste : <b>17, 18, 19</b> et <b>98, 99, 100</b>.</li>
+    <li>On encadre chaque limite : juste avant, pile dessus, juste après.</li>
+    <li>Cette technique se combine toujours avec les partitions d'équivalence.</li>
+  </ul>
+  <div class="note">« Off-by-one » : l'erreur de décalage d'une unité est l'un des bugs les plus fréquents. Les valeurs limites les attrapent.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Techniques de conception</div>
+  <h2 class="slide-title">Table de décision & transition d'état</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">🔢</span><h3>Table de décision</h3>
+      <p>Pour les règles avec plusieurs conditions combinées. On liste chaque combinaison d'entrées et le résultat attendu. Idéal pour les règles métier (remises, droits d'accès).</p>
+    </div>
+    <div class="card">
+      <span class="ico">🔀</span><h3>Transition d'état</h3>
+      <p>Pour les objets qui changent d'état (commande : créée → payée → expédiée). On teste chaque transition valide et invalide.</p>
+    </div>
+  </div>
+  <div class="note">Aucune technique n'est « la meilleure » : on les <b>combine</b> selon ce qu'on teste.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Garder le fil</div>
+  <h2 class="slide-title">La matrice de traçabilité</h2>
+  <ul class="points">
+    <li>Elle relie chaque <b>exigence</b> à un ou plusieurs <b>cas de test</b>.</li>
+    <li>Elle répond à deux questions vitales : <b>« Ai-je testé toutes les exigences ? »</b> et <b>« Pourquoi ce test existe-t-il ? »</b></li>
+    <li>Elle révèle les <b>trous de couverture</b> : une exigence sans test associé.</li>
+    <li>Elle est exigée dans les secteurs réglementés (banque, santé, public).</li>
+  </ul>
+  <div class="note">Sans traçabilité, on ne sait jamais si on a testé « assez ». Avec, on le prouve.</div>
+</section>
+
+<!-- EXERCICE 1 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 1</div>
+  <h2 class="exo-title">Concevez vos premiers cas de test</h2>
+  <div class="exo-meta">25 minutes · en binôme</div>
+  <ol class="exo-steps">
+    <li>Prenez la fonctionnalité « formulaire d'inscription » (nom, email, mot de passe).</li>
+    <li>Identifiez les classes d'équivalence et les valeurs limites du champ mot de passe (8 à 20 caractères).</li>
+    <li>Rédigez 4 cas de test complets : 1 cas passant, 3 cas en échec attendu.</li>
+    <li>Chaque cas doit avoir : ID, titre, préconditions, étapes, résultat attendu.</li>
+  </ol>
+  <div class="exo-livrable"><b>Livrable :</b> un document de 4 cas de test rejouables par un autre binôme sans explication orale.</div>
+</section>
+
+<!-- ============ MODULE 5 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">05</div>
+  <div class="section-tag">Module 5</div>
+  <h1 class="section-title">Exécuter et rapporter</h1>
+  <p class="section-sub">Jouer un test et signaler un bug de façon impeccable</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">L'exécution</div>
+  <h2 class="slide-title">Les statuts d'un test</h2>
+  <div class="grid g4">
+    <div class="card"><span class="tag-pill pill-ok">PASSED</span><p style="margin-top:12px">Le résultat réel correspond au résultat attendu.</p></div>
+    <div class="card"><span class="tag-pill pill-bad">FAILED</span><p style="margin-top:12px">Le résultat réel diffère : on ouvre un bug.</p></div>
+    <div class="card"><span class="tag-pill pill-warn">BLOCKED</span><p style="margin-top:12px">Impossible de jouer le test (préconditions absentes).</p></div>
+    <div class="card"><span class="tag-pill" style="background:rgba(154,154,181,.15);color:#bcbcd0;border:1px solid rgba(154,154,181,.3)">SKIPPED</span><p style="margin-top:12px">Test non exécuté volontairement cette fois.</p></div>
+  </div>
+  <div class="note">Un test en échec n'est pas un drame : c'est exactement ce pour quoi le testeur est payé. <b>Trouver un bug avant le client est une victoire.</b></div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le cycle du bug</div>
+  <h2 class="slide-title">La vie d'une anomalie</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Nouveau</h4><p>Le testeur crée le rapport.</p></div>
+    <div class="step"><div class="n">2</div><h4>Assigné</h4><p>Un dev prend le bug en charge.</p></div>
+    <div class="step"><div class="n">3</div><h4>Corrigé</h4><p>Le dev livre un correctif.</p></div>
+    <div class="step"><div class="n">4</div><h4>Re-testé</h4><p>Le testeur vérifie la correction.</p></div>
+    <div class="step"><div class="n">5</div><h4>Fermé</h4><p>Le bug est résolu et clos.</p></div>
+  </div>
+  <div class="note">Un bug peut être <b>rouvert</b> si le re-test échoue, ou <b>rejeté</b> si ce n'en est pas un. Le testeur suit son bug jusqu'à la fermeture.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le livrable n°1 du testeur</div>
+  <h2 class="slide-title">Anatomie d'un bon rapport de bug</h2>
+  <ul class="points">
+    <li><b>Titre clair</b> — résume le problème en une ligne lisible par tous.</li>
+    <li><b>Étapes pour reproduire</b> — numérotées, précises, sans ambiguïté.</li>
+    <li><b>Résultat attendu vs résultat obtenu</b> — la divergence en deux phrases.</li>
+    <li><b>Environnement</b> — navigateur, OS, version de l'app.</li>
+    <li><b>Preuves</b> — capture d'écran, vidéo, logs.</li>
+    <li><b>Sévérité & priorité</b> — pour aider à classer.</li>
+  </ul>
+  <div class="note">Un bug mal écrit revient toujours : « je ne reproduis pas ». Un bug bien écrit se corrige du premier coup. C'est votre <b>carte de visite</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Ne pas confondre</div>
+  <h2 class="slide-title">Sévérité vs priorité</h2>
+  <table>
+    <tr><th>Sévérité</th><th>Priorité</th></tr>
+    <tr><td><b>Gravité technique</b> de l'impact</td><td><b>Urgence</b> de la correction</td></tr>
+    <tr><td>Fixée par le testeur</td><td>Fixée par le métier / chef de projet</td></tr>
+    <tr><td>« L'app plante » = sévérité haute</td><td>« À corriger avant la démo » = priorité haute</td></tr>
+    <tr><td>Faute d'orthographe = sévérité basse…</td><td>…mais priorité haute si c'est sur le logo !</td></tr>
+  </table>
+  <div class="note">Les deux sont <b>indépendantes</b>. Un bug peut être grave mais pas urgent, ou bénin mais urgent.</div>
+</section>
+
+<!-- EXERCICE 2 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 2</div>
+  <h2 class="exo-title">Rédigez un rapport de bug professionnel</h2>
+  <div class="exo-meta">20 minutes · individuel</div>
+  <ol class="exo-steps">
+    <li>Scénario : sur un site e-commerce, le bouton « Ajouter au panier » fonctionne mais le compteur du panier ne s'incrémente pas.</li>
+    <li>Rédigez le titre du bug en une ligne, claire et lisible.</li>
+    <li>Décrivez les étapes de reproduction, le résultat attendu et le résultat obtenu.</li>
+    <li>Attribuez une sévérité et une priorité, et justifiez votre choix en une phrase.</li>
+  </ol>
+  <div class="exo-livrable"><b>Livrable :</b> un rapport de bug qu'un développeur pourrait corriger sans vous poser une seule question.</div>
+</section>
+
+<!-- ============ MODULE 6 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">06</div>
+  <div class="section-tag">Module 6</div>
+  <h1 class="section-title">Le test exploratoire</h1>
+  <p class="section-sub">Là où l'intuition humaine fait la différence</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Une autre façon de tester</div>
+  <h2 class="slide-title">Qu'est-ce que le test exploratoire ?</h2>
+  <ul class="points">
+    <li>On <b>explore le logiciel librement</b>, sans script figé, en apprenant au fur et à mesure.</li>
+    <li>La conception et l'exécution se font <b>en même temps</b> : on décide du test suivant selon ce qu'on vient d'observer.</li>
+    <li>C'est l'art de se demander <b>« et si je faisais ça ? »</b> — cliquer deux fois, revenir en arrière, saisir des emojis.</li>
+    <li>Il complète les tests scriptés : il trouve les bugs <b>auxquels personne n'avait pensé</b>.</li>
+  </ul>
+  <div class="note">Le test scripté vérifie ce qu'on sait. Le test exploratoire découvre ce qu'on <b>ignorait</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Structurer la liberté</div>
+  <h2 class="slide-title">Le test par sessions</h2>
+  <ul class="points">
+    <li>On fixe une <b>charte</b> : un objectif clair pour la session (ex. « explorer le tunnel de paiement »).</li>
+    <li>On limite la durée : <b>une session de 60 à 90 minutes</b>, concentrée.</li>
+    <li>On <b>prend des notes</b> en continu : ce qu'on teste, ce qu'on trouve, les questions ouvertes.</li>
+    <li>On débriefe à la fin : bugs trouvés, zones à creuser, idées de nouveaux cas de test.</li>
+  </ul>
+  <div class="note">L'exploratoire n'est pas du « clic au hasard » : c'est une <b>exploration disciplinée et documentée</b>.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Des pistes d'attaque</div>
+  <h2 class="slide-title">Quelques heuristiques à tester</h2>
+  <div class="grid g3">
+    <div class="card"><h3>Le vide</h3><p>Que se passe-t-il avec des champs vides, une liste vide, un panier vide ?</p></div>
+    <div class="card"><h3>Le trop</h3><p>Un texte de 10 000 caractères, 999 articles, un fichier énorme.</p></div>
+    <div class="card"><h3>Les caractères spéciaux</h3><p>Émojis, accents, guillemets, code HTML dans les champs.</p></div>
+    <div class="card"><h3>L'interruption</h3><p>Couper le réseau, fermer l'onglet, revenir en arrière en plein parcours.</p></div>
+    <div class="card"><h3>Le double</h3><p>Double-clic, double soumission, deux onglets en parallèle.</p></div>
+    <div class="card"><h3>Les droits</h3><p>Accéder à une URL réservée sans être connecté.</p></div>
+  </div>
+</section>
+
+<!-- ============ MODULE 7 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">07</div>
+  <div class="section-tag">Module 7</div>
+  <h1 class="section-title">Les outils du testeur</h1>
+  <p class="section-sub">Le matériel de base d'un testeur fonctionnel en 2026</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Organiser le travail</div>
+  <h2 class="slide-title">Gestion de test & suivi de bug</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">🗂️</span><h3>Outils de gestion de test</h3>
+      <p>Stocker les cas de test, les organiser en suites, suivre les exécutions et la couverture. Exemples : TestCollab, TestRail, Xray, Zephyr.</p>
+    </div>
+    <div class="card">
+      <span class="ico">🐞</span><h3>Outils de suivi de bug</h3>
+      <p>Créer, assigner et suivre les anomalies. Exemples : Jira, Azure DevOps, GitHub Issues, Bugzilla.</p>
+    </div>
+  </div>
+  <div class="note">Souvent les deux sont liés : un test en échec génère directement un bug rattaché. <b>Jira + un outil de test</b> est la combinaison la plus répandue.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Sous le capot du navigateur</div>
+  <h2 class="slide-title">Les DevTools, le couteau suisse</h2>
+  <ul class="points">
+    <li><b>Onglet Console</b> — repérer les erreurs JavaScript invisibles à l'écran.</li>
+    <li><b>Onglet Réseau</b> — voir les requêtes, les codes de réponse (200, 404, 500).</li>
+    <li><b>Onglet Éléments</b> — inspecter le HTML/CSS d'un bouton ou d'un champ.</li>
+    <li><b>Mode responsive</b> — simuler un mobile sans changer d'appareil.</li>
+  </ul>
+  <div class="note">Ouvrez les DevTools avec <b>F12</b>. Un testeur qui sait lire l'onglet Réseau remonte des bugs bien plus précis.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Aller plus loin</div>
+  <h2 class="slide-title">API & automatisation : les notions à connaître</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="ico">🔌</span><h3>Test d'API (Postman)</h3>
+      <p>Tester directement les échanges entre applications, sans interface graphique. On vérifie les réponses, les codes d'erreur, les données renvoyées.</p>
+    </div>
+    <div class="card">
+      <span class="ico">🤖</span><h3>Automatisation (Selenium, Playwright, Cypress)</h3>
+      <p>Des outils qui pilotent un navigateur pour rejouer des tests automatiquement. Le débutant n'a pas à coder tout de suite, mais doit savoir que ça existe.</p>
+    </div>
+  </div>
+  <div class="note">Ne vous précipitez pas sur l'automatisation : <b>maîtrisez d'abord le raisonnement test</b>. Automatiser un mauvais test ne fait qu'accélérer l'erreur.</div>
+</section>
+
+<!-- ============ MODULE 8 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">08</div>
+  <div class="section-tag">Module 8</div>
+  <h1 class="section-title">Le test à l'ère de l'IA</h1>
+  <p class="section-sub">L'IA comme copilote du testeur — pas comme remplaçant</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Le changement de paradigme</div>
+  <h2 class="slide-title">L'IA arrive dans le terminal du testeur</h2>
+  <ul class="points">
+    <li>Des agents IA comme <b>Claude Code</b> tournent dans l'environnement de développement et <b>lisent le code réel</b> du projet.</li>
+    <li>Ils se connectent aux outils via <b>MCP (Model Context Protocol)</b> : gestion de test, navigateur, CI.</li>
+    <li>L'IA ne travaille plus sur des connaissances génériques, mais sur <b>votre application précise</b>.</li>
+    <li>Résultat : des cas de test fondés sur l'implémentation réelle, pas sur des modèles génériques.</li>
+  </ul>
+  <div class="note">Source : guide TestCollab « Claude Code for QA testing » (2026). L'IA devient un <b>partenaire de pair-testing</b> infatigable.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Cas d'usage</div>
+  <h2 class="slide-title">6 usages concrets pour la QA</h2>
+  <div class="grid g3">
+    <div class="card"><span class="ico">📝</span><h3>Génération de cas de test</h3><p>L'IA lit le code ou les specs et propose des cas de test structurés à relire.</p></div>
+    <div class="card"><span class="ico">🔍</span><h3>Test exploratoire assisté</h3><p>Elle pilote le navigateur en langage naturel et rapporte ce qu'elle observe.</p></div>
+    <div class="card"><span class="ico">📸</span><h3>Capture de preuves</h3><p>Captures, logs et traçabilité automatiquement attachés aux exécutions.</p></div>
+    <div class="card"><span class="ico">⚠️</span><h3>Analyse de risque</h3><p>Elle repère ce que change un commit et propose les tests prioritaires.</p></div>
+    <div class="card"><span class="ico">🔧</span><h3>Maintenance des tests</h3><p>Elle met à jour les cas de test impactés par une évolution du code.</p></div>
+    <div class="card"><span class="ico">🔁</span><h3>Bug → test de régression</h3><p>Après une correction, elle génère le test de non-régression associé.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">La règle d'or</div>
+  <h2 class="slide-title">Ce qui reste toujours humain</h2>
+  <ul class="points">
+    <li>L'IA est un <b>assistant, pas un remplaçant</b> : elle propose, vous décidez.</li>
+    <li>La <b>stratégie de test</b> reste à vous : quoi tester, jusqu'où, avec quel risque.</li>
+    <li>La décision <b>Passed / Failed</b> et le <b>feu vert de mise en production</b> restent humains.</li>
+    <li>Les observations de l'IA sont des <b>pistes à vérifier</b>, jamais des rapports de bug définitifs.</li>
+  </ul>
+  <div class="note">Le testeur qui sait piloter l'IA n'est pas menacé par elle : il devient <b>2 à 5 fois plus productif</b> que celui qui l'ignore.</div>
+</section>
+
+<!-- EXERCICE 3 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 3</div>
+  <h2 class="exo-title">Faites générer des cas de test par l'IA</h2>
+  <div class="exo-meta">25 minutes · en binôme</div>
+  <ol class="exo-steps">
+    <li>Rédigez une exigence simple en français (ex. « réinitialisation de mot de passe par email »).</li>
+    <li>Écrivez un prompt demandant à une IA de générer 5 cas de test : cas passants, cas d'erreur, cas limites.</li>
+    <li>Analysez la réponse : quels cas l'IA a-t-elle oubliés ? Lesquels sont en trop ?</li>
+    <li>Corrigez et complétez à la main pour obtenir un jeu de tests fiable.</li>
+  </ol>
+  <div class="exo-livrable"><b>Livrable :</b> un jeu de cas de test « IA + relecture humaine » prêt à l'emploi, et la liste des corrections que vous avez dû apporter.</div>
+</section>
+
+<!-- ============ MODULE 9 ============ -->
+<section class="slide slide-divider">
+  <div class="section-num">09</div>
+  <div class="section-tag">Module 9</div>
+  <h1 class="section-title">Démarrer sa carrière</h1>
+  <p class="section-sub">Vos premiers pas concrets après cette formation</p>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">La certification de référence</div>
+  <h2 class="slide-title">L'ISTQB Foundation</h2>
+  <ul class="points">
+    <li>C'est la <b>certification d'entrée</b> reconnue mondialement pour les testeurs.</li>
+    <li>Elle couvre exactement les fondamentaux vus aujourd'hui : principes, cycles, techniques, gestion des tests.</li>
+    <li>Examen à choix multiples, <b>accessible aux débutants</b> avec quelques semaines de révision.</li>
+    <li>Sur un CV junior, elle fait souvent la <b>différence à l'embauche</b>.</li>
+  </ul>
+  <div class="note">Visez l'<b>ISTQB Certified Tester Foundation Level (CTFL)</b> comme premier objectif après cette formation.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Se rendre crédible</div>
+  <h2 class="slide-title">Construire son premier portfolio</h2>
+  <ul class="points">
+    <li>Choisissez une app publique (site e-commerce, app météo) et <b>testez-la pour de vrai</b>.</li>
+    <li>Produisez un petit dossier : <b>cas de test + rapports de bug + une session exploratoire</b>.</li>
+    <li>Documentez votre démarche : pourquoi ces tests, quelles techniques utilisées.</li>
+    <li>Ajoutez un exemple où vous avez <b>collaboré avec une IA</b> pour générer des tests.</li>
+  </ul>
+  <div class="note">Un recruteur retient un candidat qui <b>montre</b> ce qu'il sait faire, pas seulement qui le dit.</div>
+</section>
+
+<section class="slide">
+  <div class="slide-tag">Vos 30 premiers jours</div>
+  <h2 class="slide-title">Plan d'action concret</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><h4>Semaine 1</h4><p>Réviser les fondamentaux et le vocabulaire de cette formation.</p></div>
+    <div class="step"><div class="n">2</div><h4>Semaine 2</h4><p>Rédiger 20 cas de test sur une app de votre choix.</p></div>
+    <div class="step"><div class="n">3</div><h4>Semaine 3</h4><p>Mener une session exploratoire et rédiger 5 rapports de bug.</p></div>
+    <div class="step"><div class="n">4</div><h4>Semaine 4</h4><p>Commencer la préparation ISTQB et monter le portfolio.</p></div>
+  </div>
+  <div class="note">La régularité bat l'intensité : <b>30 minutes par jour</b> valent mieux qu'un week-end marathon.</div>
+</section>
+
+<!-- RECAP -->
+<section class="slide">
+  <div class="slide-tag">L'essentiel</div>
+  <h2 class="slide-title">5 choses à retenir</h2>
+  <div class="recap-list">
+    <div class="r"><div class="num">1</div><p>Tester, c'est <b>comparer l'attendu au réel</b> pour donner confiance — et trouver un bug avant le client est une victoire.</p></div>
+    <div class="r"><div class="num">2</div><p>Un <b>bon cas de test</b> est reproductible par n'importe qui ; un <b>bon rapport de bug</b> se corrige sans poser de question.</p></div>
+    <div class="r"><div class="num">3</div><p>On ne teste jamais tout : on <b>priorise par le risque</b> avec des techniques (équivalence, valeurs limites).</p></div>
+    <div class="r"><div class="num">4</div><p>Le <b>test exploratoire</b> trouve ce que les scripts ignorent ; la <b>curiosité méthodique</b> est votre première compétence.</p></div>
+    <div class="r"><div class="num">5</div><p>L'<b>IA est un copilote</b> : elle accélère, mais la stratégie et la décision finale restent humaines.</p></div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="slide slide-cta">
+  <h2>Merci.</h2>
+  <p>Des questions, un besoin de formation pour votre équipe ? Contactez-moi directement.</p>
+  <div class="cta-links">
+    <a href="mailto:hello@dhcompany.pro">hello@dhcompany.pro</a>
+    <a href="https://dhcompany.pro">dhcompany.pro</a>
+    <a href="https://ecoledunumerique.be">ecoledunumerique.be</a>
+    <a href="https://ia4africa.org">ia4africa.org</a>
+  </div>
+  <div class="cta-socials">@DigitalMaker237 sur LinkedIn & X — Joël Parfait Kuate, Digital House Company</div>
+</section>
+
+<!-- UI -->
+<div id="counter">1 / 1</div>
+<button class="nav-btn" id="prev">‹</button>
+<button class="nav-btn" id="next">›</button>
+<div class="brand-foot">Digital House Company · hello@dhcompany.pro</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+
+  function goTo(n){
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides[current].classList.add('active');
+    progressBar.style.width = ((current + 1) / slides.length * 100) + '%';
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    window.scrollTo(0,0);
+  }
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    if(e.key === 'Home') goTo(0);
+    if(e.key === 'End') goTo(slides.length - 1);
+  });
+
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+
+  let xStart = null;
+  document.addEventListener('touchstart', e => { xStart = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    if(xStart === null) return;
+    const diff = xStart - e.changedTouches[0].screenX;
+    if(Math.abs(diff) > 50) diff > 0 ? goTo(current + 1) : goTo(current - 1);
+    xStart = null;
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>

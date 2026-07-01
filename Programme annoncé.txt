@@ -1,0 +1,32 @@
+Programme de la formation
+1Acquérir le bon état d’esprit avec l’IA générative
+Améliorer les activités de tests avec les LLM.
+Les risques sécuritaires, législatifs et énergétique et les LLM.
+Erreurs et hallucinations dans le fonctionnement des LLM.
+Ingénierie des prompts pour interroger les LLM.
+Intelligence artificielle, automatisation et test des logiciels.
+Travaux pratiques
+Réalisation de différents prompts et techniques de prompts avec des comptes chatgpt, claude ou mistral.
+
+2Techniques de tests et ingénierie des prompts
+Elaboration et conception des tests avec l’assistance d’une IA générative.
+Assister le test exploratoire avec l’IA générative.
+Création rapide de données et jeux de données avec l’IA générative.
+Analyse de rapport de tests et visualisation.
+Travaux pratiques
+Utilisation de comptes chatgpt, claude ou mistral. Création d’artéfacts de tests assisté par l’IA pour chaque point du chapitre.
+
+3Techniques avancées et prompts pour les développeurs et automaticiens
+Tests unitaires assistés par l’IA générative pour les développeurs.
+Accélérer la création et améliorer les tests métier de bout en bout (End to End) avec l’IA générative.
+Agent IA vu comme assistant de test.
+Travaux pratiques
+Utilisation de comptes chatgpt, claude ou mistral. Création de code de tests unitaires et de tests IHM automatisés via l’IA générative et insertion dans du code existant (JUnit, Web Driver, Playwright et Cypress) Analyse du fonctionnement d’un agent IA développé en java/python.
+
+4Contextualisation des modèles d’IA pour des contextes métier
+Personnaliser des modèles d’IA.
+Comprendre la technique RAG – Retrieval Augmented Generation.
+Comprendre le fine-tuning.
+Démonstration des 2 techniques sur le poste de l’intervenant.
+Échanges
+Opportunités futures.

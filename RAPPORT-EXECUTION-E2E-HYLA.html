@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rapport d'Exécution E2E – hyla-air-solution.be</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #1b2a4a 0%, #2d4373 100%);
+    color: white;
+    padding: 40px 48px 32px;
+  }
+  .header .doc-type {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 3px 14px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .header .url { color: #a8c8f0; font-size: 14px; margin-bottom: 24px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 20px;
+  }
+  .meta-item .meta-label { font-size: 10px; opacity: 0.65; text-transform: uppercase; letter-spacing: 0.8px; }
+  .meta-item .meta-value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+  /* ── DASHBOARD ── */
+  .dashboard {
+    margin: 28px 32px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+  .kpi {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .kpi .kpi-val { font-size: 32px; font-weight: 800; line-height: 1; }
+  .kpi .kpi-label { font-size: 11px; color: #888; margin-top: 4px; }
+  .kpi.total .kpi-val { color: #2d4373; }
+  .kpi.passed .kpi-val { color: #1a9e6a; }
+  .kpi.failed .kpi-val { color: #d93025; }
+  .kpi.blocked .kpi-val { color: #e07b00; }
+  .kpi.rate .kpi-val { color: #1a9e6a; font-size: 26px; }
+
+  /* ── WORKFLOW DIAGRAM ── */
+  .workflow-section {
+    margin: 0 32px 28px;
+    background: white;
+    border-radius: 10px;
+    padding: 22px 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .workflow-section h2 { font-size: 16px; font-weight: 700; color: #2d4373; margin-bottom: 16px; }
+  .workflow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .wf-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 120px;
+  }
+  .wf-box {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    width: 110px;
+  }
+  .wf-step .wf-num { font-size: 10px; color: #aaa; }
+  .wf-box.blue  { background: #deeaff; color: #2d4373; border: 2px solid #2d4373; }
+  .wf-box.green { background: #d4f5e9; color: #1a6640; border: 2px solid #1a9e6a; }
+  .wf-box.orange{ background: #fff0d8; color: #8a4d00; border: 2px solid #e07b00; }
+  .wf-arrow {
+    font-size: 18px; color: #bbb; margin: 0 4px; flex-shrink: 0;
+    padding-bottom: 20px;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin: 0 32px 24px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .section-head {
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-head.blue   { background: #2d4373; color: white; }
+  .section-head.dark   { background: #1a1a2e; color: white; }
+  .section-head.green  { background: #1a9e6a; color: white; }
+  .section-head.red    { background: #d93025; color: white; }
+  .section-head.orange { background: #e07b00; color: white; }
+  .section-body { padding: 0; }
+
+  /* ── RESULT TABLE ── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: #f4f6fa;
+    text-align: left;
+    padding: 9px 14px;
+    font-size: 11px;
+    color: #2d4373;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f0f3fa; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfe; }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .status.pass    { background: #d4f5e9; color: #1a6640; }
+  .status.fail    { background: #fde8e8; color: #a01010; }
+  .status.blocked { background: #fff0d8; color: #8a4d00; }
+  .status.skip    { background: #f0f0f0; color: #777; }
+
+  /* ── CLAUDE OUTPUT BOX ── */
+  .claude-output {
+    background: #1a1a2e;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 11.5px;
+    color: #cce8ff;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .claude-output .label {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7ec8e3;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .claude-output .ok  { color: #06d6a0; }
+  .claude-output .ko  { color: #ff6b6b; }
+  .claude-output .info{ color: #f9c74f; }
+
+  /* ── DEFECT CARD ── */
+  .defect-card {
+    border: 1px solid #f0d0d0;
+    border-left: 5px solid #d93025;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 12px 22px;
+    background: #fff8f8;
+  }
+  .defect-card .defect-id {
+    font-size: 11px; font-weight: 700; color: #d93025;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .defect-card .defect-title { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+  .defect-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .defect-field .df-label { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .defect-field .df-value { font-weight: 600; color: #333; }
+  .severity-high   { color: #d93025; }
+  .severity-medium { color: #e07b00; }
+  .severity-low    { color: #1a9e6a; }
+  .repro-steps {
+    margin-top: 10px;
+    background: #f4f6fa;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .repro-steps .rs-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+  .repro-steps ol { padding-left: 18px; }
+  .repro-steps li { margin-bottom: 3px; }
+
+  /* ── CONCLUSION ── */
+  .conclusion {
+    margin: 0 32px 48px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .conclusion .concl-head {
+    background: #2d4373; color: white;
+    padding: 14px 22px; font-size: 15px; font-weight: 700;
+  }
+  .concl-body { padding: 20px 24px; }
+  .opinion-box {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .opinion-box.go     { background: #d4f5e9; border-left: 5px solid #1a9e6a; color: #0d4d2e; }
+  .opinion-box.nogo   { background: #fde8e8; border-left: 5px solid #d93025; color: #5a0000; }
+  .opinion-box.cond   { background: #fff0d8; border-left: 5px solid #e07b00; color: #4d2a00; }
+  .opinion-box .op-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .sign-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+  }
+  .sign-box {
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .sign-box .sign-role { font-size: 10px; text-transform: uppercase; color: #aaa; letter-spacing: 0.7px; }
+  .sign-box .sign-name { font-size: 13px; font-weight: 700; color: #2d4373; margin-top: 24px; }
+  .sign-box .sign-date { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  /* ── HOW-TO BOX ── */
+  .howto {
+    margin: 0 32px 28px;
+    background: #fffbe6;
+    border: 1px solid #f0d060;
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .howto h2 { font-size: 15px; font-weight: 700; color: #7a5c00; margin-bottom: 10px; }
+  .howto p { font-size: 13px; color: #5a4200; line-height: 1.7; }
+  .howto .flow {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px; font-size: 12px; font-weight: 600; color: #4a3800;
+  }
+  .howto .flow span {
+    background: #fff3c0; border: 1px solid #e0c040; border-radius: 16px;
+    padding: 4px 12px;
+  }
+  .howto .flow .arr { color: #b08000; font-size: 16px; }
+
+  @media print {
+    body { background: white; }
+    .dashboard, .section, .conclusion, .howto, .workflow-section { margin: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<div class="header">
+  <div class="doc-type">Rapport d'exécution de tests</div>
+  <h1>Rapport E2E — Processus d'achat en ligne</h1>
+  <div class="url">🌐 https://hyla-air-solution.be/ — Tests réalisés via Claude Computer Use</div>
+  <div class="meta-grid">
+    <div class="meta-item"><div class="meta-label">Référence</div><div class="meta-value">RPT-E2E-HYLA-001</div></div>
+    <div class="meta-item"><div class="meta-label">Version testée</div><div class="meta-value">Production – v1.x</div></div>
+    <div class="meta-item"><div class="meta-label">Date d'exécution</div><div class="meta-value">01/07/2026</div></div>
+    <div class="meta-item"><div class="meta-label">Testeur</div><div class="meta-value">Claude + Superviseur</div></div>
+    <div class="meta-item"><div class="meta-label">Outil utilisé</div><div class="meta-value">Claude Computer Use</div></div>
+    <div class="meta-item"><div class="meta-label">Référence cas de test</div><div class="meta-value">E2E-CLAUDE-PROMPTS-HYLA</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ HOW-TO ═══════════════════ -->
+<div class="howto" style="margin-top:28px;">
+  <h2>📌 Comment ce rapport est-il produit ?</h2>
+  <p>Avec Claude Computer Use, le testeur ne code pas de script Playwright — il donne des <strong>prompts en langage naturel</strong> à Claude qui pilote le navigateur. Une fois l'exécution terminée, Claude fournit une <strong>réponse textuelle</strong> décrivant ce qu'il a vu et vérifié. Le testeur consigne ces résultats dans ce document.</p>
+  <div class="flow">
+    <span>📋 Prompt de test</span>
+    <span class="arr">→</span>
+    <span>🤖 Claude pilote le navigateur</span>
+    <span class="arr">→</span>
+    <span>📝 Claude décrit ce qu'il voit</span>
+    <span class="arr">→</span>
+    <span>✍️ Testeur consigne le résultat ici</span>
+    <span class="arr">→</span>
+    <span>📊 Ce rapport</span>
+  </div>
+</div>
+
+<!-- ═══════════════════ DASHBOARD KPI ═══════════════════ -->
+<div class="dashboard">
+  <div class="kpi total">
+    <div class="kpi-val">18</div>
+    <div class="kpi-label">Cas de test exécutés</div>
+  </div>
+  <div class="kpi passed">
+    <div class="kpi-val">14</div>
+    <div class="kpi-label">✅ Passés</div>
+  </div>
+  <div class="kpi failed">
+    <div class="kpi-val">2</div>
+    <div class="kpi-label">❌ Échoués</div>
+  </div>
+  <div class="kpi blocked">
+    <div class="kpi-val">2</div>
+    <div class="kpi-label">⚠️ Bloqués</div>
+  </div>
+  <div class="kpi rate">
+    <div class="kpi-val">77 %</div>
+    <div class="kpi-label">Taux de succès</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ WORKFLOW ═══════════════════ -->
+<div class="workflow-section">
+  <h2>🔄 Flux du processus documenté</h2>
+  <div class="workflow">
+    <div class="wf-step">
+      <div class="wf-num">1</div>
+      <div class="wf-box blue">Rédiger les prompts de test</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-num">2</div>
+      <div class="wf-box blue">Exécuter via Claude CU</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-num">3</div>
+      <div class="wf-box green">Collecter les réponses Claude</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-num">4</div>
+      <div class="wf-box green">Consigner ✅/❌ ici</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-num">5</div>
+      <div class="wf-box orange">Créer fiches défauts</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-step">
+      <div class="wf-num">6</div>
+      <div class="wf-box blue">Avis GO / NO-GO</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TABLEAU RÉSULTATS ═══════════════════ -->
+<div class="section">
+  <div class="section-head blue">📋 Résultats détaillés par cas de test</div>
+  <div class="section-body">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Scénario / Étape</th>
+          <th>Prompt exécuté</th>
+          <th>Résultat obtenu (réponse Claude)</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- SC-01 -->
+        <tr>
+          <td><strong>TC-01</strong></td>
+          <td>Accueil — Chargement page</td>
+          <td><em>Navigue vers le site, ferme les cookies...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Page d'accueil chargée. Logo HYLA (grenouille) visible. Menu navigation présent avec icônes compte, recherche et panier. Bannière cookies fermée via bouton "FERMER".</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-02</strong></td>
+          <td>Accueil — Accès catalogue</td>
+          <td><em>Clique sur "Nos produits" dans le menu...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> J'ai cliqué sur l'entrée "Boutique" dans le menu. La page catalogue s'est chargée avec une grille de produits.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-03</strong></td>
+          <td>Catalogue — Vérification affichage</td>
+          <td><em>VÉRIFIE qu'au moins 1 produit est visible...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Je vois 6 produits sur la page. Chacun a une image, un nom et un prix en €. Ex : "HYLA EST" à 1 490 €.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <!-- SC-02 -->
+        <tr>
+          <td><strong>TC-04</strong></td>
+          <td>Fiche produit — Ouverture</td>
+          <td><em>Clique sur le premier produit...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Fiche produit "HYLA EST" ouverte. Image haute résolution visible. Page chargée avec description technique.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-05</strong></td>
+          <td>Fiche produit — Contenu</td>
+          <td><em>VÉRIFIE nom, prix, image, bouton ajout...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Nom : "HYLA EST" · Prix : 1 490,00 € · Image : chargée · Description : présente · Bouton "AJOUTER AU PANIER" : visible et actif.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-06</strong></td>
+          <td>Fiche produit — Ajout panier</td>
+          <td><em>Clique sur "Ajouter au panier"...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="info">⚠️</span> J'ai cliqué sur "AJOUTER AU PANIER". Une animation a eu lieu mais <span class="ko">aucun compteur n'est apparu</span> dans le header. Je vois un message "Produit ajouté" mais il a disparu très rapidement.</div>
+          </td>
+          <td><span class="status blocked">⚠️ BLOQUÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-07</strong></td>
+          <td>Panier — Vérification compteur</td>
+          <td><em>VÉRIFIE compteur ≥ 1 dans le header...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ko">❌</span> L'icône panier dans le header ne montre <span class="ko">aucun compteur visible</span>. Je ne peux pas confirmer que le produit est bien dans le panier sans accéder à la page panier.</div>
+          </td>
+          <td><span class="status blocked">⚠️ BLOQUÉ</span></td>
+        </tr>
+
+        <!-- SC-03 -->
+        <tr>
+          <td><strong>TC-08</strong></td>
+          <td>Panier — Accès page panier</td>
+          <td><em>Clique sur l'icône panier...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Accès à la page panier via l'icône header. Page chargée : "HYLA EST" × 1 = 1 490,00 € visible.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-09</strong></td>
+          <td>Panier — Vérification contenu</td>
+          <td><em>VÉRIFIE produit, qté, prix, total, checkout...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Produit : HYLA EST · Quantité : 1 · Prix unitaire : 1 490,00 € · Total : 1 490,00 € · Bouton "PASSER LA COMMANDE" présent.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-10</strong></td>
+          <td>Panier — Modification quantité</td>
+          <td><em>Change la quantité de 1 à 2...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Champ quantité modifié de 1 à 2. Clic sur "Mettre à jour le panier". Nouveau total : 2 980,00 € (= 2 × 1 490 €). Cohérent.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <!-- SC-04 -->
+        <tr>
+          <td><strong>TC-11</strong></td>
+          <td>Checkout — Accès tunnel</td>
+          <td><em>Clique sur "Passer la commande"...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Page checkout chargée. Formulaire de facturation visible avec champs : prénom, nom, adresse, email, téléphone.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-12</strong></td>
+          <td>Checkout — Saisie formulaire</td>
+          <td><em>Remplis les données de test Jean Testeur...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Formulaire rempli : Jean / Testeur / 12 Rue de la Qualité / Bruxelles 1000 / +32 470 000 000 / test.e2e@exemple.be. Aucune erreur de validation visible.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-13</strong></td>
+          <td>Checkout — Récapitulatif commande</td>
+          <td><em>VÉRIFIE produit, sous-total, livraison, TTC...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Récapitulatif : HYLA EST × 2 / Sous-total : 2 980,00 € / Livraison : à calculer / Total : 2 980,00 € + frais. Cohérent avec le panier.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-14</strong></td>
+          <td>Checkout — Modes de paiement</td>
+          <td><em>VÉRIFIE les modes de paiement disponibles...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Modes disponibles : Virement bancaire, Carte de crédit (Mollie), Bancontact. Virement sélectionné par défaut. Bouton "Passer la commande" présent — non cliqué.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <!-- SC-05 -->
+        <tr>
+          <td><strong>TC-15</strong></td>
+          <td>Cas négatif — Formulaire vide</td>
+          <td><em>Soumettre checkout sans données...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Après clic sur "Passer la commande" sans rien remplir : 6 champs en rouge avec message "Ce champ est obligatoire." La commande n'a pas été passée.</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-16</strong></td>
+          <td>Cas négatif — Email invalide</td>
+          <td><em>Saisir "ceci-nest-pas-un-email"...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ko">❌</span> Après saisie de "ceci-nest-pas-un-email" dans le champ email, <span class="ko">aucun message d'erreur n'apparaît</span> immédiatement. Le formulaire a été soumis et une erreur générique est apparue côté serveur.</div>
+          </td>
+          <td><span class="status fail">❌ ÉCHOUÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-17</strong></td>
+          <td>Cas négatif — Panier vide / checkout</td>
+          <td><em>Accéder au checkout avec panier vide...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ok">✅</span> Accès direct à /checkout/ avec panier vide : redirection vers page panier avec message "Votre panier est actuellement vide."</div>
+          </td>
+          <td><span class="status pass">✅ PASSÉ</span></td>
+        </tr>
+
+        <tr>
+          <td><strong>TC-18</strong></td>
+          <td>Cas négatif — Recherche nulle</td>
+          <td><em>Rechercher "xyzproduitinexistant99"...</em></td>
+          <td>
+            <div class="claude-output"><span class="label">Réponse Claude</span><span class="ko">❌</span> La recherche a retourné <span class="ko">une page blanche sans message explicatif</span>. Aucun texte "aucun résultat" visible. L'utilisateur pourrait croire que la recherche n'a pas fonctionné.</div>
+          </td>
+          <td><span class="status fail">❌ ÉCHOUÉ</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ DÉFAUTS ═══════════════════ -->
+<div class="section">
+  <div class="section-head red">🐛 Fiches de défauts détectés</div>
+  <div class="section-body" style="padding: 8px 0 16px;">
+
+    <div class="defect-card">
+      <div class="defect-id">🐛 DEF-001 — Sévérité : <span class="severity-medium">MOYENNE</span></div>
+      <div class="defect-title">Le compteur du panier n'est pas mis à jour visuellement après ajout produit</div>
+      <div class="defect-grid">
+        <div class="defect-field"><div class="df-label">Cas de test</div><div class="df-value">TC-06, TC-07</div></div>
+        <div class="defect-field"><div class="df-label">Environnement</div><div class="df-value">Production – Chrome</div></div>
+        <div class="defect-field"><div class="df-label">Priorité</div><div class="df-value">Haute</div></div>
+        <div class="defect-field"><div class="df-label">Assigné à</div><div class="df-value">Équipe front-end</div></div>
+        <div class="defect-field"><div class="df-label">Statut</div><div class="df-value">Ouvert</div></div>
+        <div class="defect-field"><div class="df-label">Impact UX</div><div class="df-value">L'utilisateur ne sait pas si l'ajout a réussi</div></div>
+      </div>
+      <div class="repro-steps">
+        <div class="rs-label">Étapes de reproduction</div>
+        <ol>
+          <li>Aller sur hyla-air-solution.be</li>
+          <li>Naviguer vers un produit (ex : HYLA EST)</li>
+          <li>Cliquer sur "Ajouter au panier"</li>
+          <li><strong>Attendu :</strong> Le compteur panier dans le header passe à "1"</li>
+          <li><strong>Obtenu :</strong> Aucun compteur visible — notification disparaît trop vite</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="defect-card">
+      <div class="defect-id">🐛 DEF-002 — Sévérité : <span class="severity-high">HAUTE</span></div>
+      <div class="defect-title">Absence de validation client sur le format de l'email au checkout</div>
+      <div class="defect-grid">
+        <div class="defect-field"><div class="df-label">Cas de test</div><div class="df-value">TC-16</div></div>
+        <div class="defect-field"><div class="df-label">Environnement</div><div class="df-value">Production – Chrome</div></div>
+        <div class="defect-field"><div class="df-label">Priorité</div><div class="df-value">Critique</div></div>
+        <div class="defect-field"><div class="df-label">Assigné à</div><div class="df-value">Équipe back-end / WooCommerce</div></div>
+        <div class="defect-field"><div class="df-label">Statut</div><div class="df-value">Ouvert</div></div>
+        <div class="defect-field"><div class="df-label">Impact</div><div class="df-value">Commandes avec email invalide — perte de contact client</div></div>
+      </div>
+      <div class="repro-steps">
+        <div class="rs-label">Étapes de reproduction</div>
+        <ol>
+          <li>Aller sur /checkout/ avec un article dans le panier</li>
+          <li>Remplir tous les champs sauf email (saisir "ceci-nest-pas-un-email")</li>
+          <li>Cliquer sur "Passer la commande"</li>
+          <li><strong>Attendu :</strong> Message d'erreur immédiat sur le champ email côté navigateur</li>
+          <li><strong>Obtenu :</strong> Le formulaire est soumis, erreur renvoyée par le serveur uniquement (UX dégradée + risque si côté serveur aussi défaillant)</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="defect-card">
+      <div class="defect-id">🐛 DEF-003 — Sévérité : <span class="severity-low">FAIBLE</span></div>
+      <div class="defect-title">Page de résultats de recherche vide — absence de message "aucun résultat"</div>
+      <div class="defect-grid">
+        <div class="defect-field"><div class="df-label">Cas de test</div><div class="df-value">TC-18</div></div>
+        <div class="defect-field"><div class="df-label">Environnement</div><div class="df-value">Production – Chrome</div></div>
+        <div class="defect-field"><div class="df-label">Priorité</div><div class="df-value">Normale</div></div>
+        <div class="defect-field"><div class="df-label">Assigné à</div><div class="df-value">Équipe front-end / thème</div></div>
+        <div class="defect-field"><div class="df-label">Statut</div><div class="df-value">Ouvert</div></div>
+        <div class="defect-field"><div class="df-label">Impact UX</div><div class="df-value">Confusion utilisateur — page vide sans explication</div></div>
+      </div>
+      <div class="repro-steps">
+        <div class="rs-label">Étapes de reproduction</div>
+        <ol>
+          <li>Utiliser la recherche du site</li>
+          <li>Saisir un terme inexistant (ex : "xyzproduitinexistant99")</li>
+          <li><strong>Attendu :</strong> Message "Aucun résultat pour votre recherche"</li>
+          <li><strong>Obtenu :</strong> Page vide sans aucun message explicatif</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ CONCLUSION ═══════════════════ -->
+<div class="conclusion">
+  <div class="concl-head">🏁 Conclusion &amp; Avis de mise en production</div>
+  <div class="concl-body">
+
+    <div class="opinion-box cond">
+      <div class="op-label">⚠️ GO CONDITIONNEL</div>
+      Le parcours d'achat principal fonctionne (navigation → catalogue → fiche produit → panier → checkout → récapitulatif).
+      Cependant, <strong>2 défauts bloquants ou majeurs</strong> ont été identifiés (DEF-001, DEF-002) qui dégradent l'expérience utilisateur et peuvent entraîner des pertes de commandes.
+      Recommandation : corriger DEF-001 et DEF-002 avant la prochaine campagne marketing. DEF-003 peut être traité en sprint suivant.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Critère</th>
+          <th>Résultat</th>
+          <th>Commentaire</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Accès et navigation</td>
+          <td><span class="status pass">✅ OK</span></td>
+          <td>Site accessible, navigation fluide</td>
+        </tr>
+        <tr>
+          <td>Catalogue et fiches produits</td>
+          <td><span class="status pass">✅ OK</span></td>
+          <td>Produits affichés correctement avec prix</td>
+        </tr>
+        <tr>
+          <td>Ajout au panier (feedback visuel)</td>
+          <td><span class="status fail">❌ KO</span></td>
+          <td>DEF-001 : compteur non mis à jour → confusion utilisateur</td>
+        </tr>
+        <tr>
+          <td>Gestion du panier</td>
+          <td><span class="status pass">✅ OK</span></td>
+          <td>Panier fonctionnel, calcul correct, modification OK</td>
+        </tr>
+        <tr>
+          <td>Tunnel de commande</td>
+          <td><span class="status pass">✅ OK</span></td>
+          <td>Formulaire, récapitulatif et modes de paiement OK</td>
+        </tr>
+        <tr>
+          <td>Validation formulaire email</td>
+          <td><span class="status fail">❌ KO</span></td>
+          <td>DEF-002 : validation côté client absente</td>
+        </tr>
+        <tr>
+          <td>Cas limites / robustesse</td>
+          <td><span class="status blocked">⚠️ PARTIEL</span></td>
+          <td>Panier vide OK mais recherche nulle sans message (DEF-003)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sign-row">
+      <div class="sign-box">
+        <div class="sign-role">Testeur / Rédacteur</div>
+        <div class="sign-name">Claude + Superviseur</div>
+        <div class="sign-date">01/07/2026</div>
+      </div>
+      <div class="sign-box">
+        <div class="sign-role">Responsable Qualité</div>
+        <div class="sign-name">_______________________</div>
+        <div class="sign-date">___/___/______</div>
+      </div>
+      <div class="sign-box">
+        <div class="sign-role">Chef de projet / Sponsor</div>
+        <div class="sign-name">_______________________</div>
+        <div class="sign-date">___/___/______</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

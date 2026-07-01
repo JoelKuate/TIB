@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jour 4 — Contextualiser les modèles d'IA (RAG + Fine-tuning)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --bg-alt:#F6F6FC; --bg-divider:#FAFAFD;
+  --text:#16161B; --text-soft:#55555F;
+  --accent:#6C63FF; --accent-deep:#4B3FE0; --accent2:#00B894; --gold:#C9A227; --danger:#E0594B;
+  --border:#E7E7F0; --shadow:0 20px 50px rgba(108,99,255,.08);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+.deck{position:relative;width:100vw;height:100vh;}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+  padding:7vh 9vw;opacity:0;transform:translateY(16px);transition:opacity .35s ease, transform .35s ease;background:var(--bg);}
+.slide.active{display:flex;opacity:1;transform:translateY(0);}
+
+.slide-tag,.cover-tag,.section-tag,.exo-tag{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--accent-deep);background:rgba(108,99,255,.08);padding:6px 14px;border-radius:999px;margin-bottom:18px;width:fit-content;}
+.exo-tag{color:#fff;background:var(--accent);}
+
+.cover{justify-content:center;align-items:flex-start;background:linear-gradient(135deg,#FFFFFF 60%,var(--bg-alt) 100%);}
+.cover-title{font-size:3.1rem;line-height:1.18;font-weight:700;margin:0 0 18px;max-width:780px;}
+.cover-accent{color:var(--accent);}
+.cover-sub{font-size:1.15rem;color:var(--text-soft);max-width:620px;margin:0 0 28px;}
+.cover-meta{font-size:.95rem;color:var(--accent-deep);font-weight:500;}
+.cover-footer{position:absolute;bottom:6vh;left:9vw;font-size:.9rem;color:var(--text-soft);}
+
+.bio-grid{display:flex;gap:60px;align-items:flex-start;margin-top:10px;}
+.bio-name{flex:0 0 240px;}
+.bio-avatar{width:84px;height:84px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;margin-bottom:16px;}
+.bio-name h3{margin:0 0 4px;font-size:1.3rem;}
+.bio-name p{margin:0;color:var(--text-soft);font-size:.95rem;}
+
+.ag-table{border-collapse:collapse;width:100%;margin-top:10px;}
+.ag-table tr{border-bottom:1px solid var(--border);}
+.ag-table td{padding:11px 14px;font-size:.92rem;vertical-align:top;}
+.ag-time{color:var(--accent-deep);font-weight:600;white-space:nowrap;width:140px;}
+.ag-mod{font-weight:600;white-space:nowrap;width:150px;}
+.ag-desc{color:var(--text-soft);}
+
+.slide-title{font-size:2.05rem;font-weight:700;margin:0 0 26px;max-width:900px;}
+.section-title{font-size:2.9rem;font-weight:700;margin:0 0 14px;max-width:820px;}
+.section-sub{font-size:1.1rem;color:var(--text-soft);max-width:620px;}
+
+.points{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;max-width:920px;}
+.points li{position:relative;padding-left:28px;font-size:1.02rem;line-height:1.5;color:var(--text);}
+.points li::before{content:"";position:absolute;left:0;top:.55em;width:9px;height:9px;border-radius:50%;background:var(--accent);}
+.note{margin-top:28px;padding:14px 18px;border-left:3px solid var(--gold);background:rgba(201,162,39,.07);font-size:.9rem;color:var(--text-soft);max-width:880px;}
+
+.two-col{display:flex;gap:50px;margin-top:6px;}
+.two-col .col{flex:1;}
+.two-col h4{margin:0 0 14px;font-size:1rem;color:var(--accent-deep);}
+
+.slide-divider{background:var(--bg-divider);justify-content:center;}
+.slide-divider .section-tag{background:rgba(108,99,255,.12);}
+
+.slide-ia .slide-tag{background:rgba(0,184,148,.1);color:#00735C;}
+
+.slide-exercice{background:linear-gradient(135deg,var(--bg) 60%,rgba(108,99,255,.05) 100%);}
+.exo-title{font-size:1.9rem;font-weight:700;margin:0 0 8px;}
+.exo-duree{font-size:.9rem;color:var(--text-soft);margin-bottom:22px;}
+.exo-steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;max-width:880px;}
+.exo-steps li{font-size:.98rem;line-height:1.5;}
+.exo-livrable{margin-top:26px;padding:14px 18px;border-radius:10px;background:var(--accent);color:#fff;font-weight:500;font-size:.92rem;max-width:880px;}
+
+.compare-grid{display:flex;gap:40px;margin-top:6px;}
+.compare-col{flex:1;border-radius:14px;padding:22px 24px;}
+.compare-good{background:rgba(0,184,148,.07);border:1px solid rgba(0,184,148,.25);}
+.compare-bad{background:rgba(224,89,75,.06);border:1px solid rgba(224,89,75,.22);}
+.compare-col h4{margin:0 0 14px;font-size:1rem;}
+.compare-good h4{color:#00735C;}
+.compare-bad h4{color:#B33A2E;}
+.compare-good .points li::before{background:var(--accent2);}
+.compare-bad .points li::before{background:var(--danger);}
+
+.slide-recap{background:var(--bg-alt);}
+.recap-sub{color:var(--text-soft);margin:-10px 0 20px;max-width:700px;}
+.recap-points li::before{background:var(--accent-deep);}
+
+.synth-table{border-collapse:collapse;width:100%;margin-top:6px;}
+.synth-table th{text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;color:var(--accent-deep);padding:10px 12px;border-bottom:2px solid var(--accent);}
+.synth-table td{padding:12px;font-size:.88rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text);line-height:1.45;}
+.synth-table tr:hover td{background:rgba(108,99,255,.04);}
+
+.slide-big{align-items:center;text-align:center;background:linear-gradient(135deg,#FFFFFF 0%,var(--bg-alt) 100%);}
+.big-text{font-size:2.2rem;font-weight:600;line-height:1.45;max-width:920px;margin:0 auto;}
+.big-text .accent{color:var(--accent);}
+.big-sub{margin-top:20px;color:var(--text-soft);font-size:1.02rem;}
+
+.slide-cta{align-items:center;text-align:center;background:var(--accent);color:#fff;}
+.slide-cta h2{font-size:2.6rem;margin:0 0 10px;}
+.slide-cta p{font-size:1.1rem;opacity:.9;margin:0 0 30px;}
+.cta-links{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;}
+.cta-links a{color:#fff;text-decoration:none;font-weight:600;border-bottom:2px solid rgba(255,255,255,.5);padding-bottom:3px;}
+.cta-links a:hover{border-color:#fff;}
+.cta-socials{margin-top:26px;opacity:.85;font-size:.92rem;}
+
+.progress-wrap{position:fixed;top:0;left:0;width:100%;height:4px;background:var(--border);z-index:50;}
+.progress-bar{height:100%;background:var(--accent);width:0%;transition:width .3s ease;}
+.counter{position:fixed;bottom:18px;right:24px;font-size:.78rem;color:var(--text-soft);z-index:50;}
+.nav-btns{position:fixed;bottom:18px;left:24px;display:flex;gap:10px;z-index:50;}
+.nav-btns button{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+.nav-btns button:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.print-btn{position:fixed;top:14px;right:24px;z-index:50;background:#fff;border:1px solid var(--border);border-radius:999px;padding:7px 16px;font-size:.78rem;font-weight:600;color:var(--accent-deep);cursor:pointer;box-shadow:var(--shadow);}
+@media print{.progress-wrap,.counter,.nav-btns,.print-btn{display:none !important;}
+  .slide{position:relative;display:flex !important;opacity:1 !important;transform:none !important;page-break-after:always;height:100vh;}}
+code{background:rgba(108,99,255,.08);padding:1px 6px;border-radius:5px;font-family:'Courier New',monospace;font-size:.92em;}
+</style>
+</head>
+<body>
+<div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+<button class="print-btn" onclick="printDeck()">Exporter en PDF</button>
+<div class="deck">
+<section class="slide cover active">
+  <div class="cover-tag">Formation · Jour 4 sur 4</div>
+  <h1 class="cover-title">Contextualiser les modèles d'IA<br><span class='cover-accent'>pour vos contextes métier</span></h1>
+  <p class="cover-sub">RAG et fine-tuning expliqués, démontrés et comparés — dernière étape du programme IA générative et test logiciel.</p>
+  <div class="cover-meta">Digital House Company · Formateur certifié · Public : testeurs, développeurs, responsables QA</div>
+  <div class="cover-footer">hello@dhcompany.pro</div>
+</section>
+<section class="slide qui-suis-je">
+  <div class="slide-tag">Formateur</div>
+  <h2 class="slide-title">Qui je suis</h2>
+  <div class="bio-grid">
+    <div class="bio-name">
+      <div class="bio-avatar">JPK</div>
+      <h3>Joël Parfait Kuate</h3>
+      <p>Ingénieur IA — Consultant &amp; Formateur certifié</p>
+    </div>
+    <ul class="points">
+      <li>Master en Architecture Logicielle &amp; Big Data</li>
+      <li>7+ ans de formation — 600+ organisations formées en Belgique</li>
+      <li>Fondateur : Digital House Company (Belgique), MS JOYCE SARL (Cameroun)</li>
+      <li>Auteur : « L'Afrique et l'Intelligence Artificielle » (2024)</li>
+      <li>Chargé de Mission — Ambassade de Côte d'Ivoire au Benelux</li>
+      <li>Projets : ia4africa.org · FormIA · SANDYKIT · Jurisis.be · Indibot.be</li>
+    </ul>
+  </div>
+  <div class="cover-footer">hello@dhcompany.pro · @DigitalMaker237</div>
+</section>
+<section class="slide agenda">
+  <div class="slide-tag">Programme</div>
+  <h2 class="slide-title">Agenda du Jour 4</h2>
+  <table class="ag-table">
+    <tr><td class="ag-time">9h00 – 9h30</td><td class="ag-mod">Ouverture</td><td class="ag-desc">Rappel du chemin parcouru (Jours 1-3) et objectifs du Jour 4</td></tr><tr><td class="ag-time">9h30 – 10h15</td><td class="ag-mod">Cadrage</td><td class="ag-desc">Pourquoi personnaliser un modèle d'IA pour un contexte métier</td></tr><tr><td class="ag-time">10h15 – 12h30</td><td class="ag-mod">Module 1</td><td class="ag-desc">RAG (Retrieval Augmented Generation) — principe, exemple, avantages/limites</td></tr><tr><td class="ag-time">12h30 – 13h30</td><td class="ag-mod">Pause déjeuner</td><td class="ag-desc"></td></tr><tr><td class="ag-time">13h30 – 14h15</td><td class="ag-mod">Démonstration</td><td class="ag-desc">RAG en conditions réelles, sur le poste de l'intervenant</td></tr><tr><td class="ag-time">14h15 – 16h00</td><td class="ag-mod">Module 2</td><td class="ag-desc">Fine-tuning — principe, exemple, avantages/limites</td></tr><tr><td class="ag-time">16h00 – 16h30</td><td class="ag-mod">Démonstration</td><td class="ag-desc">Fine-tuning en conditions réelles, sur le poste de l'intervenant</td></tr><tr><td class="ag-time">16h30 – 17h00</td><td class="ag-mod">Synthèse</td><td class="ag-desc">RAG vs fine-tuning : quand choisir quoi</td></tr><tr><td class="ag-time">17h00 – 17h30</td><td class="ag-mod">Échanges</td><td class="ag-desc">Opportunités futures, questions ouvertes</td></tr>
+  </table>
+  <div class="note">Journée de clôture du programme — forte dominante démonstration et échanges, peu de travaux pratiques individuels.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Ouverture</div>
+  <h2 class="slide-title">Le chemin parcouru depuis le Jour 1</h2>
+  <ul class="points">
+    <li>Jour 1 — l'état d'esprit : ce qu'un LLM sait bien faire, où il hallucine, comment le questionner par le prompt.</li><li>Jour 2 — la conception et l'exécution de tests assistées par IA : cas de test, jeux de données, analyse de rapports.</li><li>Jour 3 — l'outillage avancé : tests unitaires, tests de bout en bout, agents IA comme assistants de test.</li><li>Aujourd'hui, Jour 4 — une question différente : comment faire en sorte que le modèle connaisse <i>votre</i> contexte, sans tout réexpliquer à chaque prompt ?</li>
+  </ul>
+  <div class="note">Tout ce que nous avons fait jusqu'ici reposait sur un modèle générique, guidé uniquement par le prompt. Aujourd'hui, nous changeons le modèle lui-même — ou ce qu'il sait avant même de répondre.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Cadrage</div>
+  <h2 class="slide-title">Le problème du modèle générique</h2>
+  <ul class="points">
+    <li>Un modèle d'IA générique ne connaît ni votre cahier des charges, ni vos conventions de nommage (CT-XX, BUG-XXXX), ni l'historique de vos anomalies.</li><li>Tout ce qu'il sait sur votre projet, il faut le lui fournir à chaque prompt — ce que nous avons fait depuis 3 jours, avec la bibliothèque de prompts structurés.</li><li>Cette approche fonctionne, mais a une limite réelle : la taille du contexte qu'on peut raisonnablement coller dans un prompt, et la répétition du même travail de mise en contexte.</li><li>Deux familles de techniques permettent d'aller plus loin : le RAG (apporter la bonne information au bon moment) et le fine-tuning (modifier le modèle lui-même).</li>
+  </ul>
+  
+</section>
+<section class="slide">
+  <div class="slide-tag">Cadrage</div>
+  <h2 class="slide-title">RAG et fine-tuning : deux familles de solutions</h2>
+  <ul class="points">
+    <li><b>RAG (Retrieval Augmented Generation)</b> — le modèle reste inchangé ; on lui fournit automatiquement les documents pertinents au moment de la question.</li><li><b>Fine-tuning</b> — le modèle lui-même est ré-entraîné sur des exemples propres à votre organisation ; il « apprend » durablement votre contexte.</li><li>Les deux techniques répondent à la même intention — un modèle qui connaît votre contexte — mais par des mécanismes très différents, avec des coûts et des usages différents.</li>
+  </ul>
+  <div class="note">Le reste de la journée détaille chaque technique séparément, puis les compare directement sur des critères concrets.</div>
+</section>
+<section class="slide slide-divider">
+  <div class="section-tag">Module 1 · 10h15 – 12h30</div>
+  <h1 class="section-title">Le RAG (Retrieval Augmented Generation)</h1>
+  <p class="section-sub">Apporter la bonne information au bon moment, sans modifier le modèle</p>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · Définition</div>
+  <h2 class="slide-title">Qu'est-ce que le RAG ?</h2>
+  <ul class="points">
+    <li>Le RAG combine un moteur de recherche documentaire et un modèle de génération de texte.</li><li>Avant de répondre, le système recherche automatiquement les passages pertinents dans une base de connaissances, puis les ajoute au contexte du prompt.</li><li>Le modèle génère ensuite sa réponse en s'appuyant sur ces passages — pas seulement sur ce qu'il a appris pendant son entraînement initial.</li><li>Aucune modification du modèle lui-même : c'est l'information fournie en amont qui change.</li>
+  </ul>
+  
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · Mécanique</div>
+  <h2 class="slide-title">Comment ça marche, étape par étape</h2>
+  <ul class="points">
+    <li>1. Indexation — les documents de référence (spécifications, cas de test, rapports d'anomalie passés) sont découpés et transformés en représentations vectorielles.</li><li>2. Recherche — à la question posée, le système retrouve les passages les plus proches sémantiquement, pas seulement par mot-clé exact.</li><li>3. Augmentation — ces passages sont insérés dans le contexte envoyé au modèle, avec la question d'origine.</li><li>4. Génération — le modèle répond en s'appuyant explicitement sur ces passages, ce qui réduit le risque d'invention.</li>
+  </ul>
+  <div class="note">C'est exactement le même principe que les outils de recherche dans vos conversations passées ou dans vos documents : retrouver avant de répondre.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · Application à notre contexte</div>
+  <h2 class="slide-title">Le RAG appliqué à notre bibliothèque de tests</h2>
+  <ul class="points">
+    <li>Imaginez la Cartographie des documents de test, la Bibliothèque de 100 prompts et l'historique des rapports d'anomalie indexés dans une base RAG.</li><li>Un testeur pose une question en langage naturel : « Quel document dois-je produire avant la recette utilisateur, et avec quel prompt ? »</li><li>Le système retrouve automatiquement la section pertinente de la cartographie et le prompt FN-XX correspondant, sans que le testeur ait besoin de les chercher manuellement.</li><li>Sur un historique de bugs, le RAG permet aussi de retrouver si une anomalie similaire a déjà été rencontrée et comment elle a été résolue.</li>
+  </ul>
+  <div class="note">C'est la suite naturelle de la bibliothèque de prompts construite les jours précédents : au lieu de chercher soi-même le bon prompt, on le retrouve par la question posée.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · Avantages et limites</div>
+  <h2 class="slide-title">Ce que le RAG apporte, ce qu'il ne résout pas</h2>
+  <div class="compare-grid">
+    <div class="compare-col compare-good"><h4>Avantages</h4><ul class="points"><li>Aucun ré-entraînement du modèle, donc coût et délai de mise en œuvre réduits</li><li>La base de connaissances se met à jour facilement (ajouter un document suffit)</li><li>Traçabilité : on peut citer la source exacte utilisée pour générer la réponse</li></ul></div>
+    <div class="compare-col compare-bad"><h4>Limites</h4><ul class="points"><li>La qualité dépend entièrement de la qualité de l'indexation et du découpage des documents</li><li>Ne change pas le « style » ou le raisonnement du modèle, seulement l'information disponible</li><li>Une recherche mal calibrée peut ramener des passages non pertinents et dérouter la réponse</li></ul></div>
+  </div>
+  
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · RAG vs autres approches</div>
+  <h2 class="slide-title">RAG, prompt manuel, ou fine-tuning ?</h2>
+  <div class="two-col">
+    <div class="col"><h4>RAG est préférable quand…</h4><ul class="points"><li>La base de connaissances est volumineuse ou évolue souvent</li><li>Plusieurs utilisateurs doivent interroger la même base</li><li>La traçabilité de la source est importante</li></ul></div>
+    <div class="col"><h4>Le prompt manuel suffit quand…</h4><ul class="points"><li>Le contexte tient dans un seul prompt structuré (cas de la bibliothèque FN-XX)</li><li>L'usage est ponctuel, pas répété à grande échelle</li><li>Aucune infrastructure de recherche n'est disponible</li></ul></div>
+  </div>
+  
+</section>
+<section class="slide slide-ia">
+  <div class="slide-tag">Module 1 · Démonstration sur le poste de l'intervenant</div>
+  <h2 class="slide-title">Ce qui sera montré en démonstration</h2>
+  <ul class="points">
+    <li>Indexation en direct d'un petit corpus de documents (extraits de la Cartographie des documents de test et de la Bibliothèque de prompts).</li><li>Question posée en langage naturel, sans préciser où chercher.</li><li>Observation des passages effectivement retrouvés par le système avant génération de la réponse.</li><li>Comparaison de la réponse avec et sans RAG, sur la même question, pour mesurer concrètement l'apport.</li>
+  </ul>
+  <div class="note">Démonstration réalisée en direct sur le poste de l'intervenant — aucune installation requise de votre côté pour suivre.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 1 · Garde-fous</div>
+  <h2 class="slide-title">Le réflexe qui fait la différence avec un RAG</h2>
+  <div class="compare-grid">
+    <div class="compare-col compare-good"><h4>À faire systématiquement</h4><ul class="points"><li>Vérifier la fraîcheur des documents indexés avant de faire confiance à une réponse</li><li>Citer la source retrouvée à l'utilisateur final, pas seulement la réponse générée</li><li>Tester la recherche sur des questions formulées différemment du vocabulaire des documents</li></ul></div>
+    <div class="compare-col compare-bad"><h4>À ne jamais faire</h4><ul class="points"><li>Indexer des documents contradictoires sans les réconcilier au préalable</li><li>Supposer que la réponse est juste uniquement parce qu'une source a été citée</li><li>Laisser une base RAG non maintenue après le départ de la personne qui l'a montée</li></ul></div>
+  </div>
+  
+</section>
+<section class="slide slide-exercice">
+  <div class="exo-tag">Exercice / réflexion</div>
+  <h2 class="exo-title">Réflexion — que pourrions-nous indexer dans notre organisation ?</h2>
+  <div class="exo-duree">15 min · en groupe</div>
+  <ol class="exo-steps">
+    <li>Listez 3 à 5 documents ou bases de connaissances de votre organisation qui gagneraient à être interrogeables par RAG.</li><li>Pour chacun, identifiez qui poserait des questions dessus, et à quelle fréquence.</li><li>Identifiez un risque si la base contient des informations obsolètes ou contradictoires.</li>
+  </ol>
+  <div class="exo-livrable">Livrable attendu : Une liste de 3 à 5 candidats RAG pour votre organisation, avec leur public et leur risque principal.</div>
+</section>
+<section class="slide slide-recap">
+  <div class="slide-tag">Récapitulatif</div>
+  <h2 class="slide-title">RAG — à retenir</h2>
+  
+  <ul class="points recap-points">
+    <li>Le RAG ne modifie pas le modèle ; il enrichit le contexte au moment de la question.</li><li>Il est particulièrement adapté à des bases de connaissances volumineuses et évolutives.</li><li>La qualité de l'indexation conditionne directement la qualité des réponses obtenues.</li><li>Prochaine étape : la seconde famille de techniques, qui modifie cette fois le modèle lui-même.</li>
+  </ul>
+</section>
+<section class="slide slide-divider">
+  <div class="section-tag">Module 2 · 14h15 – 16h00</div>
+  <h1 class="section-title">Le fine-tuning</h1>
+  <p class="section-sub">Faire apprendre durablement votre contexte au modèle lui-même</p>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 2 · Définition</div>
+  <h2 class="slide-title">Qu'est-ce que le fine-tuning ?</h2>
+  <ul class="points">
+    <li>Le fine-tuning consiste à poursuivre l'entraînement d'un modèle déjà existant sur un jeu d'exemples propre à un domaine ou une organisation.</li><li>Contrairement au RAG, c'est le modèle lui-même qui change : ses paramètres internes sont ajustés.</li><li>Le modèle « apprend » un style, un vocabulaire, des conventions — sans qu'il soit nécessaire de les rappeler à chaque prompt.</li><li>C'est une opération plus lourde que le RAG : elle demande un jeu de données d'exemples, du temps de calcul, et une évaluation rigoureuse avant mise en production.</li>
+  </ul>
+  
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 2 · Mécanique</div>
+  <h2 class="slide-title">Comment ça marche, étape par étape</h2>
+  <ul class="points">
+    <li>1. Constitution du jeu de données — des exemples représentatifs de paires question/réponse ou instruction/sortie attendue, dans le style et le vocabulaire visés.</li><li>2. Entraînement — le modèle de base est ré-entraîné sur ce jeu de données, en ajustant ses paramètres internes.</li><li>3. Évaluation — on vérifie que le modèle ajusté répond mieux sur le domaine ciblé, sans perdre ses capacités générales.</li><li>4. Déploiement — le modèle personnalisé est mis à disposition, utilisable sans avoir à fournir le contexte à chaque fois.</li>
+  </ul>
+  <div class="note">La qualité du jeu de données d'exemples est le facteur le plus déterminant — bien plus que la quantité d'exemples fournis.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 2 · Application à notre contexte</div>
+  <h2 class="slide-title">Le fine-tuning appliqué au vocabulaire QA</h2>
+  <ul class="points">
+    <li>Imaginez un modèle fine-tuné sur des centaines de rapports d'anomalie réels de votre organisation : il appliquerait nativement votre échelle de sévérité et votre format sans qu'on le lui rappelle.</li><li>Un modèle fine-tuné sur vos cas de test passés répondrait avec vos conventions de nommage exactes (CT-XX, BUG-AAAA-NNNN), sans avoir besoin du référentiel en contexte.</li><li>Le gain principal : moins de contexte à fournir à chaque prompt, une fois l'investissement de fine-tuning réalisé.</li><li>Le risque principal : un jeu d'exemples de mauvaise qualité ou trop restreint peut dégrader les capacités générales du modèle.</li>
+  </ul>
+  <div class="note">Contrairement au RAG, ce travail n'est pertinent que si le volume d'usage est suffisant pour justifier l'investissement initial.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 2 · Avantages et limites</div>
+  <h2 class="slide-title">Ce que le fine-tuning apporte, ce qu'il coûte</h2>
+  <div class="compare-grid">
+    <div class="compare-col compare-good"><h4>Avantages</h4><ul class="points"><li>Le contexte n'a plus besoin d'être rappelé à chaque prompt</li><li>Le style et le vocabulaire métier deviennent natifs au modèle</li><li>Particulièrement efficace pour des tâches répétitives et standardisées</li></ul></div>
+    <div class="compare-col compare-bad"><h4>Limites</h4><ul class="points"><li>Nécessite un jeu de données de qualité, souvent coûteux à constituer</li><li>Mise à jour plus lourde qu'une simple réindexation RAG</li><li>Risque de sur-spécialisation si le jeu d'exemples est trop étroit</li></ul></div>
+  </div>
+  
+</section>
+<section class="slide slide-ia">
+  <div class="slide-tag">Module 2 · Démonstration sur le poste de l'intervenant</div>
+  <h2 class="slide-title">Ce qui sera montré en démonstration</h2>
+  <ul class="points">
+    <li>Présentation d'un petit jeu de données d'exemples (rapports d'anomalie au format maison).</li><li>Aperçu du processus de fine-tuning sur le poste de l'intervenant, sans attendre la fin réelle de l'entraînement (durée incompatible avec une session live).</li><li>Comparaison de réponses, sur la même question, entre un modèle de base et un modèle fine-tuné préparé en amont.</li><li>Discussion sur le coût réel (temps, données, calcul) par rapport au gain observé.</li>
+  </ul>
+  <div class="note">Démonstration réalisée en direct sur le poste de l'intervenant — aucune installation requise de votre côté pour suivre.</div>
+</section>
+<section class="slide">
+  <div class="slide-tag">Module 2 · Qualité des données</div>
+  <h2 class="slide-title">Qualité plutôt que quantité</h2>
+  <ul class="points">
+    <li>Un jeu de quelques centaines d'exemples cohérents et bien annotés vaut souvent mieux que des dizaines de milliers d'exemples bruts et hétérogènes.</li><li>Chaque exemple doit refléter exactement le format et le style attendus en sortie — le modèle reproduit ce qu'on lui montre, y compris ses défauts.</li><li>Les données sensibles (noms de clients, données de production) doivent être anonymisées avant d'entrer dans un jeu d'entraînement.</li><li>Une relecture humaine du jeu de données avant entraînement est aussi importante que la relecture des réponses générées ensuite.</li>
+  </ul>
+  <div class="note">C'est le même principe que les jeux de données de test vus au Jour 2 : la qualité des données conditionne directement la qualité du résultat.</div>
+</section>
+<section class="slide slide-table">
+  <div class="slide-tag">Synthèse</div>
+  <h2 class="slide-title">RAG ou fine-tuning : quand choisir quoi</h2>
+  <table class="synth-table">
+    <thead><tr><th>Critère</th><th>RAG</th><th>Fine-tuning</th></tr></thead>
+    <tbody><tr><td>Volume et fréquence d'évolution de l'information</td><td>Adapté — réindexer est rapide</td><td>Mal adapté — nécessite un nouvel entraînement</td></tr><tr><td>Besoin de citer la source exacte</td><td>Natif — la source retrouvée est connue</td><td>Difficile — le modèle ne « sait » pas d'où vient sa réponse</td></tr><tr><td>Besoin d'un style ou d'un vocabulaire natif</td><td>Limité — dépend toujours du contexte fourni</td><td>Adapté — le style devient intrinsèque au modèle</td></tr><tr><td>Coût de mise en œuvre initial</td><td>Plus faible</td><td>Plus élevé</td></tr><tr><td>Cas d'usage typique en test logiciel</td><td>Interroger la documentation et l'historique de bugs</td><td>Générer des rapports dans un format maison strict, à grand volume</td></tr></tbody>
+  </table>
+  <div class="note">Dans la pratique, les deux approches sont souvent combinées : un modèle légèrement fine-tuné sur le style, alimenté par du RAG pour les faits à jour.</div>
+</section>
+<section class="slide slide-divider">
+  <div class="section-tag">Clôture · 16h30 – 17h30</div>
+  <h1 class="section-title">Synthèse et opportunités futures</h1>
+  <p class="section-sub">Ce qui ferme la boucle du programme complet</p>
+</section>
+<section class="slide">
+  <div class="slide-tag">Synthèse</div>
+  <h2 class="slide-title">Où cela s'inscrit dans le cycle de test complet</h2>
+  <ul class="points">
+    <li>La Cartographie des documents de test, le Notebook Cycle complet et la Bibliothèque de 100 prompts (Jours 1-3) reposaient sur un modèle générique guidé par le prompt à chaque usage.</li><li>Le RAG permettrait d'interroger directement cette bibliothèque sans avoir à chercher soi-même le bon prompt FN-XX.</li><li>Le fine-tuning permettrait à un modèle de produire nativement des rapports d'anomalie ou des cas de test dans le format exact de votre organisation.</li><li>Les deux techniques ne remplacent pas le prompt structuré : elles réduisent la quantité de contexte à répéter à chaque fois.</li>
+  </ul>
+  
+</section>
+<section class="slide">
+  <div class="slide-tag">Échanges</div>
+  <h2 class="slide-title">Opportunités futures — pistes de discussion</h2>
+  <ul class="points">
+    <li>Quelle base documentaire de votre organisation serait la plus rentable à indexer en RAG en premier ?</li><li>Avez-vous un volume d'usage suffisant (nombre de rapports, de cas de test) pour justifier un fine-tuning ?</li><li>Quelles données faudrait-il anonymiser avant de les utiliser dans l'une ou l'autre approche ?</li><li>Qui, dans votre organisation, porterait la maintenance d'une base RAG ou d'un modèle fine-tuné dans la durée ?</li>
+  </ul>
+  <div class="note">Cette section est volontairement ouverte — l'objectif est de faire émerger un cas d'usage concret et réaliste pour votre contexte, pas de couvrir l'exhaustivité du sujet.</div>
+</section>
+<section class="slide slide-recap">
+  <div class="slide-tag">Récapitulatif</div>
+  <h2 class="slide-title">Points clés du Jour 4</h2>
+  
+  <ul class="points recap-points">
+    <li>Le RAG enrichit le contexte au moment de la question, sans modifier le modèle — rapide à mettre en place, facile à maintenir.</li><li>Le fine-tuning modifie le modèle lui-même — plus coûteux, mais le contexte n'a plus besoin d'être répété.</li><li>Le choix entre les deux dépend du volume, de la fréquence de mise à jour, et du besoin de traçabilité.</li><li>Les deux techniques se combinent souvent dans les usages réels les plus matures.</li><li>Avec ce Jour 4, le programme complet — état d'esprit, techniques de test, outillage avancé, contextualisation — est désormais bouclé.</li>
+  </ul>
+</section>
+<section class="slide slide-big">
+  <p class="big-text">Le modèle ne devine pas votre contexte.<br>À vous de choisir <span class='accent'>comment</span> le lui apporter.</p>
+  
+</section>
+<section class="slide slide-cta">
+  <h2>Merci.</h2>
+  <p>Des questions ? Contactez-moi directement.</p>
+  <div class="cta-links">
+    <a href="mailto:hello@dhcompany.pro">hello@dhcompany.pro</a>
+    <a href="https://dhcompany.pro" target="_blank">dhcompany.pro</a>
+    <a href="https://ia4africa.org" target="_blank">ia4africa.org</a>
+    <a href="https://ecoledunumerique.be" target="_blank">ecoledunumerique.be</a>
+  </div>
+  <div class="cta-socials">@DigitalMaker237 sur LinkedIn &amp; X</div>
+</section>
+</div>
+<div class="counter" id="counter">1 / 30</div>
+<div class="nav-btns"><button onclick="goTo(current-1)">‹</button><button onclick="goTo(current+1)">›</button></div>
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const progressBar = document.getElementById('progress');
+const counter = document.getElementById('counter');
+function goTo(n) {
+  slides[current].classList.remove('active');
+  current = Math.max(0, Math.min(n, slides.length - 1));
+  slides[current].classList.add('active');
+  progressBar.style.width = ((current + 1) / slides.length * 100) + '%';
+  counter.textContent = (current + 1) + ' / ' + slides.length;
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goTo(current - 1);
+});
+let xStart = null;
+document.addEventListener('touchstart', e => { xStart = e.changedTouches[0].screenX; });
+document.addEventListener('touchend', e => {
+  if (xStart === null) return;
+  const diff = xStart - e.changedTouches[0].screenX;
+  if (Math.abs(diff) > 50) diff > 0 ? goTo(current + 1) : goTo(current - 1);
+  xStart = null;
+});
+function printDeck(){ window.print(); }
+goTo(0);
+</script>
+</body>
+</html>

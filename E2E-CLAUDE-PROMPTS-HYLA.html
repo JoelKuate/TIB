@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>E2E Tests – Claude Computer Use – hyla-air-solution.be</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    background: #f3f6fa;
+    color: #1a1a2e;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* COVER */
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: white;
+    padding: 52px 48px 40px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cover h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .cover .url { color: #7ec8e3; font-size: 16px; margin-bottom: 28px; }
+  .cover-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px; padding: 5px 14px; font-size: 12px;
+  }
+
+  /* CONCEPT BOX */
+  .concept {
+    margin: 28px 32px;
+    background: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .concept h2 { font-size: 18px; font-weight: 700; color: #0f3460; margin-bottom: 16px; grid-column: 1/-1; }
+  .compare-box {
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .compare-box.playwright { background: #eef2ff; border-left: 4px solid #4361ee; }
+  .compare-box.claude-cu  { background: #e8f7f0; border-left: 4px solid #06d6a0; }
+  .compare-box h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .compare-box.playwright h3 { color: #4361ee; }
+  .compare-box.claude-cu  h3 { color: #048a64; }
+  .compare-box pre {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 6px;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  /* SCENARIO SECTION */
+  .scenario-title {
+    margin: 0 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    margin-bottom: 0;
+  }
+  .scenario-title h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f3460;
+  }
+  .scenario-title .sc-badge {
+    background: #0f3460;
+    color: white;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sc-desc {
+    margin: 6px 32px 20px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  /* TEST STEPS */
+  .steps-wrap { margin: 0 32px 36px; display: flex; flex-direction: column; gap: 0; }
+
+  .step {
+    background: white;
+    border-radius: 0;
+    border-left: 4px solid #ccc;
+    border-bottom: 1px solid #eef;
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    overflow: hidden;
+  }
+  .step:first-child { border-radius: 12px 12px 0 0; }
+  .step:last-child  { border-radius: 0 0 12px 12px; border-bottom: none; }
+
+  .step.action  { border-left-color: #4361ee; }
+  .step.assert  { border-left-color: #06d6a0; }
+  .step.input   { border-left-color: #f77f00; }
+  .step.nav     { border-left-color: #7b2d8b; }
+  .step.pause   { border-left-color: #aaa; background: #fafafa; }
+
+  .step-num {
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 18px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+  }
+  .step.action .step-num { color: #4361ee; }
+  .step.assert .step-num { color: #048a64; }
+  .step.input  .step-num { color: #c66000; }
+  .step.nav    .step-num { color: #7b2d8b; }
+
+  .step-body { padding: 14px 18px 14px 10px; }
+
+  .step-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .step-type {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 10px; padding: 2px 8px;
+  }
+  .step.action .step-type { background: #e8ecff; color: #4361ee; }
+  .step.assert .step-type { background: #e0f7ef; color: #048a64; }
+  .step.input  .step-type { background: #fff0e0; color: #c66000; }
+  .step.nav    .step-type { background: #f3e8f7; color: #7b2d8b; }
+  .step.pause  .step-type { background: #f0f0f0; color: #888; }
+
+  .step-title {
+    font-size: 14px; font-weight: 700; color: #1a1a2e;
+  }
+
+  /* THE PROMPT BOX */
+  .prompt-box {
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    position: relative;
+  }
+  .prompt-box .prompt-label {
+    font-size: 10px; color: #7ec8e3;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prompt-box .prompt-label::before {
+    content: '▶';
+    font-size: 8px;
+  }
+  .prompt-box p {
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    color: #e8f4fd;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+  .prompt-box .highlight { color: #f9c74f; font-weight: 700; }
+  .prompt-box .assert-kw { color: #06d6a0; font-weight: 700; }
+  .prompt-box .url-kw { color: #a8dadc; }
+
+  /* EQUIVALENCE PLAYWRIGHT */
+  .pw-equiv {
+    margin-top: 8px;
+    background: #f5f7ff;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 11.5px;
+    color: #4361ee;
+    border-left: 3px solid #4361ee;
+  }
+  .pw-equiv .pw-label {
+    font-size: 10px; color: #999; font-family: Calibri, Arial, sans-serif;
+    margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+  }
+
+  /* ASSERTION RESULT */
+  .assert-result {
+    display: flex; gap: 8px; align-items: flex-start;
+    margin-top: 8px;
+    background: #e8f7ef;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #1a6640;
+  }
+  .assert-result .icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* TIPS */
+  .tip {
+    margin-top: 8px;
+    background: #fffbe6;
+    border-left: 3px solid #f9c74f;
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #5a4200;
+  }
+  .tip strong { color: #b07800; }
+
+  /* SCENARIO SEPARATOR */
+  .sc-sep {
+    margin: 40px 32px 0;
+    border: none;
+    border-top: 2px dashed #dde3f0;
+  }
+
+  /* SUMMARY TABLE */
+  .summary {
+    margin: 32px 32px 48px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .summary h2 {
+    background: #1a1a2e; color: white;
+    padding: 16px 24px; font-size: 17px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: #f3f6fa; text-align: left;
+    padding: 9px 14px; font-size: 11px; color: #0f3460;
+    text-transform: uppercase; letter-spacing: 0.7px;
+    border-bottom: 2px solid #dde3f0;
+  }
+  td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid #f0f3fa; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* GLOBAL PROMPT */
+  .global-prompt {
+    margin: 0 32px 32px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 28px 32px;
+    color: #e8f4fd;
+  }
+  .global-prompt h2 { color: #7ec8e3; font-size: 17px; margin-bottom: 6px; }
+  .global-prompt .sub { color: #aaa; font-size: 12px; margin-bottom: 18px; }
+  .global-prompt pre {
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: #e8f4fd;
+  }
+  .global-prompt .hl { color: #f9c74f; }
+  .global-prompt .kw { color: #06d6a0; }
+  .global-prompt .url { color: #a8dadc; }
+  .global-prompt .num { color: #ff9f43; }
+
+  @media print {
+    body { background: white; }
+    .concept, .steps-wrap, .summary, .global-prompt { margin: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="badge">Test E2E – Claude Computer Use</div>
+  <h1>Tests End-to-End — Processus d'achat</h1>
+  <div class="url">🌐 https://hyla-air-solution.be/</div>
+  <div class="cover-pills">
+    <span class="pill">🤖 Claude + Computer Use</span>
+    <span class="pill">🛒 Parcours d'achat complet</span>
+    <span class="pill">✅ 5 scénarios · 22 étapes</span>
+    <span class="pill">📋 Document de référence formateur</span>
+  </div>
+</div>
+
+<!-- CONCEPT COMPARISON -->
+<div class="concept">
+  <h2>💡 Principe : Claude Computer Use comme moteur de tests E2E</h2>
+  <div class="compare-box playwright">
+    <h3>🎭 Avec Playwright (code)</h3>
+    <pre>// test-purchase.spec.ts
+test('Add product to cart', async ({ page }) => {
+  await page.goto('https://hyla-air-solution.be');
+  await page.click('text=Nos produits');
+  await page.waitForSelector('.product-grid');
+  await page.click('.product-card:first-child');
+  await page.click('button[data-add-to-cart]');
+  await expect(page.locator('.cart-count'))
+    .toHaveText('1');
+});</pre>
+  </div>
+  <div class="compare-box claude-cu">
+    <h3>🤖 Avec Claude Computer Use (prompts)</h3>
+    <pre>Ouvre https://hyla-air-solution.be dans le
+navigateur. Clique sur "Nos produits" dans
+le menu principal. Attends que la grille
+de produits s'affiche. Clique sur le
+premier produit disponible. Clique sur
+"Ajouter au panier". VÉRIFIE que le
+compteur du panier affiche bien "1".</pre>
+  </div>
+</div>
+
+<!-- ══════════ SCÉNARIO 1 ══════════ -->
+<div class="scenario-title">
+  <h2>Scénario 1 — Navigation &amp; Découverte produits</h2>
+  <span class="sc-badge">SC-01</span>
+</div>
+<p class="sc-desc">Vérifie que l'utilisateur peut accéder au site, naviguer dans le catalogue et trouver un produit d'air purifié.</p>
+
+<div class="steps-wrap">
+
+  <div class="step nav">
+    <div class="step-num">01</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Navigation</span>
+        <span class="step-title">Accès à la page d'accueil</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Ouvre le navigateur et accède à l'URL <span class="url-kw">https://hyla-air-solution.be/</span>.
+Attends que la page soit complètement chargée (logo HYLA visible, menu de navigation présent).
+Si une bannière cookies apparaît, clique sur <span class="highlight">"Fermer"</span> ou <span class="highlight">"Accepter"</span> pour la fermer.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> La page d'accueil HYLA est visible avec le logo grenouille, le menu navigation et le contenu hero section.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.goto('https://hyla-air-solution.be/');<br>await page.waitForLoadState('networkidle');<br>await page.locator('.cookie-banner button').click();</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">02</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Action</span>
+        <span class="step-title">Accès au catalogue produits</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Dans le menu de navigation principal, recherche et clique sur l'entrée correspondant aux <span class="highlight">produits</span> (peut s'appeler "Nos produits", "Boutique", "Shop" ou un lien catalogue).
+Attends que la page liste de produits se charge.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Une liste ou grille de produits (purificateurs d'air, aspirateurs, etc.) est affichée avec images et prix.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.click('nav >> text=/produits|boutique|shop/i');<br>await page.waitForSelector('[class*="product"]');</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">03</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification affichage catalogue</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> que la page catalogue contient :
+— Au moins <span class="highlight">1 produit</span> visible avec une image
+— Un <span class="highlight">titre de produit</span> lisible
+— Un <span class="highlight">prix</span> affiché en euros (€)
+— Un bouton ou lien permettant d'accéder au détail du produit
+Prends une capture d'écran et décris ce que tu vois.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> N produits listés avec image, nom, prix €. Aucune erreur 404 ou message "aucun produit".</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await expect(page.locator('.product-card')).toHaveCountGreaterThan(0);<br>await expect(page.locator('.price')).toContainText('€');</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ SCÉNARIO 2 ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Scénario 2 — Fiche produit &amp; Ajout au panier</h2>
+  <span class="sc-badge">SC-02</span>
+</div>
+<p class="sc-desc">Vérifie qu'un utilisateur peut consulter le détail d'un produit et l'ajouter au panier.</p>
+
+<div class="steps-wrap">
+
+  <div class="step action">
+    <div class="step-num">04</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Action</span>
+        <span class="step-title">Ouverture de la fiche produit</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Sur la page catalogue, clique sur le <span class="highlight">premier produit</span> visible (clique sur l'image ou le titre du produit, pas sur un bouton "Ajouter au panier" directement).
+Attends que la page de détail du produit soit complètement chargée.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> La page fiche produit s'ouvre avec l'image agrandie, la description complète, le prix et un bouton d'achat.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.locator('.product-card').first().click();<br>await page.waitForLoadState('networkidle');</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">05</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification contenu fiche produit</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> que la fiche produit contient bien les éléments suivants :
+— <span class="highlight">Nom du produit</span> clairement visible (H1 ou titre principal)
+— <span class="highlight">Prix en €</span> affiché
+— <span class="highlight">Image produit</span> chargée (pas d'icône cassée)
+— <span class="highlight">Description</span> ou texte de présentation
+— Un bouton <span class="highlight">"Ajouter au panier"</span> (ou équivalent)
+Indique le nom du produit que tu vois et son prix.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Tous les éléments présents. Claude retourne le nom et le prix exact du produit testé.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await expect(page.locator('h1')).toBeVisible();<br>await expect(page.locator('[class*="price"]')).toContainText('€');<br>await expect(page.locator('[class*="add-to-cart"]')).toBeEnabled();</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">06</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Action</span>
+        <span class="step-title">Ajout au panier</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Clique sur le bouton <span class="highlight">"Ajouter au panier"</span> (ou "Add to cart", "Acheter", "Commander").
+Attends la confirmation visuelle de l'ajout (notification, animation panier, compteur mis à jour).</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Le produit est ajouté. Le compteur du panier (icône panier dans le header) passe à "1" ou une notification de confirmation apparaît.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.click('button[data-add-to-cart], .add-to-cart-btn');<br>await expect(page.locator('.cart-count, [class*="cart"] span')).toHaveText('1');</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> C'est ici que la différence avec Playwright est flagrante — Claude identifie le bon bouton même si le sélecteur CSS change, car il le reconnaît visuellement par son libellé.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">07</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification panier mis à jour</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> dans le header de la page :
+— L'icône panier affiche un <span class="highlight">compteur ≥ 1</span>
+— OU une notification de type <span class="highlight">"Produit ajouté"</span> est apparue
+— OU le mini-panier latéral s'est ouvert avec le produit listé
+Prends une capture d'écran du header / panier et décris l'état actuel.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Confirmation visuelle que le panier contient au moins 1 article.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ SCÉNARIO 3 ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Scénario 3 — Consultation &amp; Modification du panier</h2>
+  <span class="sc-badge">SC-03</span>
+</div>
+<p class="sc-desc">Vérifie que le panier est accessible, modifiable et affiche le bon total.</p>
+
+<div class="steps-wrap">
+
+  <div class="step nav">
+    <div class="step-num">08</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Navigation</span>
+        <span class="step-title">Accès à la page panier</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Clique sur l'icône <span class="highlight">panier</span> dans le header (ou sur "Mon panier", "Voir le panier").
+Attends que la page panier soit complètement chargée et liste les articles.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Page panier affichée avec le produit ajouté précédemment, son prix unitaire et un total calculé.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.click('[href*="cart"], [href*="panier"], .cart-icon');<br>await page.waitForSelector('.cart-items, .woocommerce-cart-form');</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">09</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification contenu panier</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> que la page panier affiche :
+— Le <span class="highlight">nom du produit</span> ajouté (identique à celui de la fiche produit)
+— La <span class="highlight">quantité</span> (doit être 1)
+— Le <span class="highlight">prix unitaire</span> en €
+— Le <span class="highlight">total</span> de la commande en €
+— Un bouton ou lien <span class="highlight">"Passer la commande"</span> ou "Checkout"
+Confirme les montants affichés.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Tous les éléments présents. Total = quantité × prix unitaire (calcul cohérent).</div>
+    </div>
+  </div>
+
+  <div class="step input">
+    <div class="step-num">10</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Saisie</span>
+        <span class="step-title">Modification de la quantité</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Dans la ligne du produit dans le panier, trouve le champ <span class="highlight">quantité</span>.
+Change la valeur de <span class="highlight">1 à 2</span>.
+Clique sur le bouton <span class="highlight">"Mettre à jour le panier"</span> (ou "Update cart", ou appuie sur Entrée si le champ se met à jour automatiquement).
+Attends que le total se recalcule.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Le total est maintenant égal à 2× le prix unitaire. Le compteur panier dans le header affiche "2".</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.locator('input[name="cart[...][qty]"]').fill('2');<br>await page.click('[name="update_cart"]');<br>await page.waitForResponse(r => r.url().includes('cart'));</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ SCÉNARIO 4 ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Scénario 4 — Tunnel de commande (Checkout)</h2>
+  <span class="sc-badge">SC-04</span>
+</div>
+<p class="sc-desc">Simule le remplissage du formulaire de commande. ⚠️ S'arrête avant la confirmation de paiement réel.</p>
+
+<div class="steps-wrap">
+
+  <div class="step nav">
+    <div class="step-num">11</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Navigation</span>
+        <span class="step-title">Accès au checkout</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Depuis la page panier, clique sur le bouton <span class="highlight">"Passer la commande"</span> (ou "Checkout", "Commander", "Valider mon panier").
+Attends que la page de commande se charge (formulaire de facturation visible).</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Page checkout chargée avec formulaire d'adresse de facturation et section de paiement.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.click('.checkout-button, [href*="checkout"]');<br>await page.waitForSelector('#billing_first_name, form.checkout');</div>
+    </div>
+  </div>
+
+  <div class="step input">
+    <div class="step-num">12</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Saisie</span>
+        <span class="step-title">Remplissage adresse de facturation</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Remplis le formulaire de facturation avec les données de test suivantes :
+— Prénom : <span class="highlight">Jean</span>
+— Nom : <span class="highlight">Testeur</span>
+— Adresse : <span class="highlight">12 Rue de la Qualité</span>
+— Ville : <span class="highlight">Bruxelles</span>
+— Code postal : <span class="highlight">1000</span>
+— Pays : <span class="highlight">Belgique</span>
+— Téléphone : <span class="highlight">+32 470 000 000</span>
+— Email : <span class="highlight">test.e2e@exemple.be</span>
+Prends une capture d'écran du formulaire rempli avant de continuer.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Tous les champs remplis sans message d'erreur visible. Les données sont bien saisies.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.fill('#billing_first_name', 'Jean');<br>await page.fill('#billing_last_name', 'Testeur');<br>await page.fill('#billing_email', 'test.e2e@exemple.be');<br>// ... etc</div>
+      <div class="tip"><strong>⚠️ Important :</strong> Utiliser uniquement des données de test fictives. Ne jamais saisir de vraies coordonnées personnelles ou bancaires dans un test E2E.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">13</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification récapitulatif de commande</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> la section récapitulatif de commande sur la page checkout :
+— Le <span class="highlight">produit correct</span> est listé avec la bonne quantité
+— Le <span class="highlight">sous-total</span> correspond à ce qui était dans le panier
+— Les <span class="highlight">frais de livraison</span> sont affichés (ou "livraison gratuite" mentionnée)
+— Le <span class="highlight">total final</span> TTC est visible
+Indique les montants exacts que tu vois.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Récapitulatif cohérent avec le panier. Total TTC calculé correctement.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">14</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Vérification modes de paiement disponibles</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p><span class="assert-kw">VÉRIFIE</span> et liste tous les <span class="highlight">modes de paiement</span> disponibles sur la page (ex : carte bancaire, virement, PayPal, Bancontact, Mollie...).
+<span class="assert-kw">VÉRIFIE</span> qu'au moins <span class="highlight">1 mode de paiement</span> est sélectionnable.
+<span class="assert-kw">NE PAS</span> cliquer sur "Confirmer la commande" — le test s'arrête ici pour éviter une transaction réelle.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Au moins 1 option de paiement visible et sélectionnable. Le bouton "Passer la commande" est présent mais NON cliqué.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> Ce point illustre une limite des tests E2E sur environnement de production — on ne peut pas déclencher un vrai paiement. En projet réel, on utilise un environnement de staging avec des numéros de carte de test Stripe/Mollie.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ SCÉNARIO 5 ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Scénario 5 — Cas négatifs &amp; Robustesse</h2>
+  <span class="sc-badge">SC-05</span>
+</div>
+<p class="sc-desc">Vérifie le comportement de l'application face aux erreurs et cas limites.</p>
+
+<div class="steps-wrap">
+
+  <div class="step assert">
+    <div class="step-num">15</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Cas négatif</span>
+        <span class="step-title">Checkout sans données obligatoires</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Retourne à la page checkout (<span class="url-kw">https://hyla-air-solution.be/checkout/</span>).
+<span class="highlight">Sans remplir</span> aucun champ du formulaire, clique directement sur le bouton <span class="highlight">"Passer la commande"</span>.
+<span class="assert-kw">VÉRIFIE</span> que des messages d'erreur de validation apparaissent sur les champs obligatoires.
+Liste les champs en erreur et le message affiché.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Messages d'erreur sur les champs obligatoires (prénom, nom, email, etc.). Commande NON passée.</div>
+      <div class="pw-equiv"><div class="pw-label">Équivalent Playwright</div>await page.click('[name="woocommerce_checkout_place_order"]');<br>await expect(page.locator('.woocommerce-error, .invalid')).toBeVisible();</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">16</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Cas négatif</span>
+        <span class="step-title">Format email invalide</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Dans le champ <span class="highlight">Email</span> du formulaire checkout, saisis une valeur invalide : <span class="highlight">ceci-nest-pas-un-email</span>
+Clique en dehors du champ ou essaie de soumettre le formulaire.
+<span class="assert-kw">VÉRIFIE</span> qu'un message d'erreur apparaît indiquant que l'email est invalide.</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Message d'erreur de validation sur le champ email. La commande ne peut pas être finalisée.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">17</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Cas négatif</span>
+        <span class="step-title">Panier vide — accès direct au checkout</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Vide le panier (supprime tous les articles) ou accède directement à <span class="url-kw">https://hyla-air-solution.be/checkout/</span> avec un panier vide.
+<span class="assert-kw">VÉRIFIE</span> que le site :
+— Affiche un message <span class="highlight">"Votre panier est vide"</span> (ou équivalent)
+— OU redirige vers la page panier/boutique
+— N'affiche PAS un formulaire de commande utilisable</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Le site gère correctement l'accès checkout avec panier vide et guide l'utilisateur vers les produits.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> Ce scénario teste la robustesse du tunnel de commande face aux manipulations directes d'URL — un cas souvent oublié dans les tests manuels.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">18</div>
+    <div class="step-body">
+      <div class="step-header">
+        <span class="step-type">Assertion</span>
+        <span class="step-title">Recherche produit inexistant</span>
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Claude Computer Use</div>
+        <p>Utilise la fonction de <span class="highlight">recherche</span> du site (icône loupe dans le header).
+Saisis un terme qui ne devrait retourner aucun résultat : <span class="highlight">xyzproduitinexistant99</span>
+<span class="assert-kw">VÉRIFIE</span> que le site affiche un message de type <span class="highlight">"Aucun résultat"</span> ou "Aucun produit trouvé" et ne génère pas d'erreur technique (pas de page blanche, pas de code d'erreur HTTP 500).</p>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> Message "aucun résultat" affiché proprement. L'interface reste stable et utilisable.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROMPT GLOBAL COMBINÉ -->
+<div class="global-prompt">
+  <h2>🚀 Prompt combiné — Exécution du scénario complet</h2>
+  <p class="sub">Copiez-collez ce prompt dans Claude avec l'extension Computer Use activée pour exécuter le test E2E complet en une seule instruction.</p>
+  <pre>
+Tu es un testeur E2E automatisé. Exécute le scénario de test d'achat suivant sur le site <span class="url">https://hyla-air-solution.be/</span> et génère un rapport structuré.
+
+<span class="kw">ÉTAPE 1 — ACCUEIL</span>
+Navigue vers le site. Ferme la bannière cookies si elle apparaît. <span class="kw">VÉRIFIE</span> que la page d'accueil se charge correctement.
+
+<span class="kw">ÉTAPE 2 — CATALOGUE</span>
+Accède à la liste de produits via le menu. <span class="kw">VÉRIFIE</span> qu'au moins 1 produit est visible avec image et prix.
+
+<span class="kw">ÉTAPE 3 — FICHE PRODUIT</span>
+Clique sur le premier produit. <span class="kw">VÉRIFIE</span> : nom, prix €, image chargée, bouton d'ajout panier. Note le nom et le prix du produit.
+
+<span class="kw">ÉTAPE 4 — AJOUT PANIER</span>
+Clique sur "Ajouter au panier". <span class="kw">VÉRIFIE</span> la confirmation visuelle (compteur panier ou notification).
+
+<span class="kw">ÉTAPE 5 — PANIER</span>
+Accède au panier. <span class="kw">VÉRIFIE</span> : produit correct, quantité 1, prix et total cohérents.
+
+<span class="kw">ÉTAPE 6 — CHECKOUT FORMULAIRE</span>
+Lance le checkout. Remplis avec les données de test :
+Prénom=<span class="hl">Jean</span> Nom=<span class="hl">Testeur</span> Email=<span class="hl">test@exemple.be</span> Tel=<span class="hl">+32470000000</span>
+Adresse=<span class="hl">12 Rue Test</span> Ville=<span class="hl">Bruxelles</span> CP=<span class="hl">1000</span>
+
+<span class="kw">ÉTAPE 7 — VÉRIFICATION FINALE</span>
+<span class="kw">VÉRIFIE</span> le récapitulatif de commande et les modes de paiement disponibles.
+<span class="hl">⚠️ NE PAS CONFIRMER LA COMMANDE.</span>
+
+<span class="kw">RAPPORT À PRODUIRE :</span>
+Pour chaque étape : ✅ PASSÉ / ❌ ÉCHOUÉ + observation.
+Indique tout comportement inattendu, message d'erreur ou lenteur notable.
+  </pre>
+</div>
+
+<!-- TABLE SUMMARY -->
+<div class="summary">
+  <h2>📊 Tableau récapitulatif des assertions</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Étape</th>
+        <th>Type</th>
+        <th>Ce que Claude vérifie</th>
+        <th>Résultat attendu</th>
+        <th>Équiv. Playwright</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>01 – Accueil</td>
+        <td>Navigation</td>
+        <td>Page chargée, logo visible, cookies fermés</td>
+        <td>✅ Page rendue sans erreur</td>
+        <td>page.goto() + waitForLoadState</td>
+      </tr>
+      <tr>
+        <td>02 – Catalogue</td>
+        <td>Action</td>
+        <td>Menu navigation, accès produits</td>
+        <td>✅ Liste produits affichée</td>
+        <td>page.click('nav >> text=...')</td>
+      </tr>
+      <tr>
+        <td>03 – Produits</td>
+        <td>Assertion</td>
+        <td>Image, nom, prix €, bouton achat</td>
+        <td>✅ ≥1 produit complet visible</td>
+        <td>expect(locator).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>05 – Fiche produit</td>
+        <td>Assertion</td>
+        <td>H1, prix, image, bouton ajout</td>
+        <td>✅ Tous éléments présents</td>
+        <td>expect(h1 + price).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>07 – Panier</td>
+        <td>Assertion</td>
+        <td>Compteur ≥ 1 ou notification</td>
+        <td>✅ Confirmation ajout visible</td>
+        <td>expect(cart-count).toHaveText('1')</td>
+      </tr>
+      <tr>
+        <td>09 – Panier détail</td>
+        <td>Assertion</td>
+        <td>Produit, qté, prix, total, bouton checkout</td>
+        <td>✅ Données cohérentes</td>
+        <td>expect(total).toMatchArithmetic()</td>
+      </tr>
+      <tr>
+        <td>13 – Checkout résumé</td>
+        <td>Assertion</td>
+        <td>Produit correct, sous-total, livraison, TTC</td>
+        <td>✅ Total TTC cohérent</td>
+        <td>expect(order-total).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>14 – Paiement</td>
+        <td>Assertion</td>
+        <td>≥1 mode de paiement disponible</td>
+        <td>✅ Option paiement sélectionnable</td>
+        <td>expect(payment-method).toBeChecked()</td>
+      </tr>
+      <tr>
+        <td>15 – Erreur form vide</td>
+        <td>Cas négatif</td>
+        <td>Messages validation champs obligatoires</td>
+        <td>✅ Erreurs affichées, commande bloquée</td>
+        <td>expect(error).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>16 – Email invalide</td>
+        <td>Cas négatif</td>
+        <td>Validation format email</td>
+        <td>✅ Message d'erreur email</td>
+        <td>expect(email-error).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>17 – Panier vide</td>
+        <td>Cas négatif</td>
+        <td>Accès checkout sans articles</td>
+        <td>✅ Redirection ou message panier vide</td>
+        <td>expect(empty-cart-msg).toBeVisible()</td>
+      </tr>
+      <tr>
+        <td>18 – Recherche nulle</td>
+        <td>Cas négatif</td>
+        <td>Résultat vide sans erreur technique</td>
+        <td>✅ "Aucun résultat" affiché proprement</td>
+        <td>expect(no-results).toBeVisible()</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
