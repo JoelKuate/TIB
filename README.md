@@ -305,4 +305,4 @@ Ressources pédagogiques à usage de formation. Contenu à adapter à votre cont
 
 ---
 
-*Formation réalisée avec [Claude Code](https://claude.ai/code) — Anthropic*
+*Formation réalisée avec [KUATE JOEL PARFAIT]([https://claude.ai/code](https://www.linkedin.com/in/joelparfaitkuate/)) — Orsys*
