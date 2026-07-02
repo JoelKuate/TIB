@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Exercice Playwright avec Claude Code — saucedemo.com — 20 user stories</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    background: #f3f6fa;
+    color: #1a1a2e;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* COVER */
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: white;
+    padding: 52px 48px 40px;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cover h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .cover .url { color: #7ec8e3; font-size: 16px; margin-bottom: 28px; }
+  .cover-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px; padding: 5px 14px; font-size: 12px;
+  }
+
+  /* CONCEPT BOX */
+  .concept {
+    margin: 28px 32px;
+    background: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .concept h2 { font-size: 18px; font-weight: 700; color: #0f3460; margin-bottom: 4px; grid-column: 1/-1; }
+  .concept .concept-sub { grid-column: 1/-1; font-size: 13px; color: #666; margin-bottom: 12px; }
+  .compare-box { border-radius: 8px; padding: 16px 18px; }
+  .compare-box.manual { background: #fff0e0; border-left: 4px solid #f77f00; }
+  .compare-box.claude-code { background: #e8f7f0; border-left: 4px solid #06d6a0; }
+  .compare-box h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .compare-box.manual h3 { color: #c66000; }
+  .compare-box.claude-code h3 { color: #048a64; }
+  .compare-box pre {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 6px;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  /* SETUP BOX */
+  .setup {
+    margin: 0 32px 28px;
+    background: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .setup h2 { font-size: 18px; font-weight: 700; color: #0f3460; margin-bottom: 14px; }
+  .setup ol { margin-left: 20px; }
+  .setup li { margin-bottom: 10px; font-size: 14px; }
+  .setup pre {
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    background: #1a1a2e; color: #e8f4fd;
+    border-radius: 8px; padding: 10px 14px; margin: 6px 0 12px;
+    white-space: pre-wrap; line-height: 1.6;
+  }
+  .setup .warn {
+    margin-top: 14px; background: #fffbe6; border-left: 3px solid #f9c74f;
+    border-radius: 0 6px 6px 0; padding: 10px 14px; font-size: 13px; color: #5a4200;
+  }
+  .setup .warn strong { color: #b07800; }
+
+  /* INSTRUCTION-CADRE (reporting automatique) */
+  .frame-instruction {
+    margin: 0 32px 32px;
+    background: #101a33;
+    border-radius: 12px;
+    padding: 26px 32px;
+    color: #e8f4fd;
+  }
+  .frame-instruction h2 { color: #7ec8e3; font-size: 17px; margin-bottom: 4px; }
+  .frame-instruction .sub { color: #a8b3c9; font-size: 12.5px; margin-bottom: 16px; }
+  .frame-instruction .prompt-box { margin-top: 0; }
+  .frame-instruction .after {
+    margin-top: 14px; background: rgba(6,214,160,0.12); border-left: 3px solid #06d6a0;
+    border-radius: 0 6px 6px 0; padding: 10px 14px; font-size: 13px; color: #cdece0;
+  }
+  .frame-instruction .after strong { color: #7ee2c0; }
+
+  /* CREDENTIALS CHEAT SHEET */
+  .creds {
+    margin: 0 32px 32px;
+    background: #eef2ff;
+    border: 1px solid #d7deff;
+    border-radius: 12px;
+    padding: 20px 26px;
+  }
+  .creds h2 { font-size: 15px; color: #0f3460; margin-bottom: 12px; }
+  .creds table { width: 100%; border-collapse: collapse; }
+  .creds th { text-align: left; font-size: 11px; color: #4361ee; text-transform: uppercase; letter-spacing: .6px; padding: 4px 10px 6px 0; }
+  .creds td { font-size: 13px; padding: 4px 10px 4px 0; font-family: 'Courier New', monospace; }
+  .creds td.desc { font-family: Calibri, Arial, sans-serif; color: #555; }
+
+  /* SCENARIO SECTION */
+  .scenario-title { margin: 0 32px; display: flex; align-items: center; gap: 12px; margin-top: 32px; }
+  .scenario-title h2 { font-size: 22px; font-weight: 700; color: #0f3460; }
+  .scenario-title .sc-badge { background: #0f3460; color: white; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
+  .sc-desc { margin: 6px 32px 20px; font-size: 13px; color: #666; }
+
+  /* STEPS */
+  .steps-wrap { margin: 0 32px 36px; display: flex; flex-direction: column; gap: 0; }
+  .step {
+    background: white; border-radius: 0; border-left: 4px solid #ccc; border-bottom: 1px solid #eef;
+    display: grid; grid-template-columns: 56px 1fr; overflow: hidden;
+  }
+  .step:first-child { border-radius: 12px 12px 0 0; }
+  .step:last-child { border-radius: 0 0 12px 12px; border-bottom: none; }
+  .step.action { border-left-color: #4361ee; }
+  .step.assert { border-left-color: #06d6a0; }
+  .step.input  { border-left-color: #f77f00; }
+  .step.nav    { border-left-color: #7b2d8b; }
+
+  .step-num { display: flex; align-items: flex-start; justify-content: center; padding: 18px 0 0; font-size: 11px; font-weight: 700; color: #aaa; }
+  .step.action .step-num { color: #4361ee; }
+  .step.assert .step-num { color: #048a64; }
+  .step.input  .step-num { color: #c66000; }
+  .step.nav    .step-num { color: #7b2d8b; }
+
+  .step-body { padding: 14px 18px 14px 10px; }
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .step-type { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; border-radius: 10px; padding: 2px 8px; }
+  .step.action .step-type { background: #e8ecff; color: #4361ee; }
+  .step.assert .step-type { background: #e0f7ef; color: #048a64; }
+  .step.input  .step-type { background: #fff0e0; color: #c66000; }
+  .step.nav    .step-type { background: #f3e8f7; color: #7b2d8b; }
+  .step.negatif .step-type { background: #fde3e3; color: #c0392b; }
+
+  .step-title { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+
+  /* USER STORY BOX */
+  .user-story {
+    margin: 2px 0 10px; background: #fff8e8; border: 1px dashed #eac25a; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: #5c4300; line-height: 1.55;
+  }
+  .user-story .us-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #b07800;
+    font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;
+  }
+  .user-story .us-label::before { content: '👤'; font-size: 11px; }
+  .user-story strong { color: #8a5a00; }
+
+  /* PROMPT BOX (ce que le testeur tape à Claude Code) */
+  .prompt-box { background: #1a1a2e; border-radius: 8px; padding: 12px 16px; margin: 8px 0; position: relative; }
+  .prompt-box .prompt-label { font-size: 10px; color: #7ec8e3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .prompt-box .prompt-label::before { content: '⌨'; font-size: 10px; }
+  .prompt-box p { font-family: 'Courier New', monospace; font-size: 12.5px; color: #e8f4fd; line-height: 1.65; white-space: pre-wrap; }
+  .prompt-box .highlight { color: #f9c74f; font-weight: 700; }
+
+  /* CODE GÉNÉRÉ PAR CLAUDE CODE */
+  .code-box { margin-top: 8px; background: #0d1321; border-radius: 8px; padding: 12px 16px; }
+  .code-box .code-label { font-size: 10px; color: #7ee787; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .code-box .code-label::before { content: '▶'; font-size: 8px; }
+  .code-box pre { font-family: 'Courier New', monospace; font-size: 12px; color: #d1e8ff; line-height: 1.6; white-space: pre-wrap; }
+  .code-box .kw { color: #ff7b72; } .code-box .st { color: #a5d6ff; } .code-box .fn { color: #d2a8ff; } .code-box .cm { color: #7a8699; }
+
+  /* RESULT */
+  .assert-result { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; background: #e8f7ef; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #1a6640; }
+  .assert-result.negatif { background: #fdecec; color: #a53030; }
+  .assert-result .icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .tip { margin-top: 8px; background: #fffbe6; border-left: 3px solid #f9c74f; border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: 12px; color: #5a4200; }
+  .tip strong { color: #b07800; }
+
+  .sc-sep { margin: 40px 32px 0; border: none; border-top: 2px dashed #dde3f0; }
+
+  /* SUMMARY TABLE */
+  .summary { margin: 32px 32px 48px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
+  .summary h2 { background: #1a1a2e; color: white; padding: 16px 24px; font-size: 17px; }
+  table.rec { width: 100%; border-collapse: collapse; }
+  table.rec th { background: #f3f6fa; text-align: left; padding: 9px 14px; font-size: 11px; color: #0f3460; text-transform: uppercase; letter-spacing: 0.7px; border-bottom: 2px solid #dde3f0; }
+  table.rec td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid #f0f3fa; vertical-align: top; }
+  table.rec tr:last-child td { border-bottom: none; }
+
+  /* RAPPORT EXEMPLE */
+  .report-example { margin: 0 32px 32px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
+  .report-example h2 { background: #0f3460; color: white; padding: 16px 24px; font-size: 17px; }
+  .report-example .re-body { padding: 20px 26px; }
+  .report-example .re-body p.intro { font-size: 13px; color: #555; margin-bottom: 14px; }
+  table.md-report { width: 100%; border-collapse: collapse; font-family: 'Courier New', monospace; font-size: 12px; }
+  table.md-report th { background: #f3f6fa; text-align: left; padding: 7px 10px; border: 1px solid #e0e6f0; }
+  table.md-report td { padding: 7px 10px; border: 1px solid #e0e6f0; }
+  table.md-report td.pass { color: #048a64; font-weight: 700; }
+  table.md-report td.fail { color: #c0392b; font-weight: 700; }
+  .re-body .ellipsis { text-align: center; color: #999; padding: 6px; font-family: Calibri, Arial, sans-serif; font-size: 12px; }
+
+  /* GLOBAL PROMPT */
+  .global-prompt { margin: 0 32px 32px; background: #1a1a2e; border-radius: 12px; padding: 28px 32px; color: #e8f4fd; }
+  .global-prompt h2 { color: #7ec8e3; font-size: 17px; margin-bottom: 6px; }
+  .global-prompt .sub { color: #aaa; font-size: 12px; margin-bottom: 18px; }
+  .global-prompt pre { font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.8; white-space: pre-wrap; color: #e8f4fd; }
+  .global-prompt .hl { color: #f9c74f; }
+  .global-prompt .kw { color: #06d6a0; }
+  .global-prompt .url { color: #a8dadc; }
+
+  @media print {
+    body { background: white; }
+    .concept, .setup, .frame-instruction, .creds, .steps-wrap, .summary, .report-example, .global-prompt { margin: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="badge">Exercice pratique · Testeurs débutants · Claude Code</div>
+  <h1>Tester saucedemo.com à partir de 20 user stories</h1>
+  <div class="url">🌐 https://www.saucedemo.com/</div>
+  <div class="cover-pills">
+    <span class="pill">🤖 Claude Code (agent de code)</span>
+    <span class="pill">📝 20 user stories → 20 tests Playwright</span>
+    <span class="pill">📄 Rapport de test généré automatiquement</span>
+    <span class="pill">✅ Toutes les étapes vérifiées et passées au vert</span>
+  </div>
+</div>
+
+<!-- CONCEPT COMPARISON -->
+<div class="concept">
+  <h2>💡 Principe : de la user story au rapport de test, sans coder à la main</h2>
+  <p class="concept-sub">Vous ne décrivez plus une action technique ("clique ici, vérifie là") mais un <strong>besoin utilisateur</strong>. Claude Code traduit la user story en test Playwright, l'exécute, et consigne le résultat dans un rapport — automatiquement, à chaque fois.</p>
+  <div class="compare-box manual">
+    <h3>✍️ Sans Claude Code (tout à la main)</h3>
+    <pre>1. Traduire la user story en cas de test
+2. Écrire le script Playwright
+3. Lancer, lire l'erreur, corriger
+4. Noter le résultat dans un fichier à part
+5. Répéter pour chacune des 20 user stories</pre>
+  </div>
+  <div class="compare-box claude-code">
+    <h3>🤖 Avec Claude Code</h3>
+    <pre>Vous : "En tant que client, je veux ajouter
+un produit à mon panier, afin de l'acheter
+plus tard."
+
+Claude Code : écrit le test, l'exécute,
+ajoute une ligne au rapport de test,
+confirme : ✅ Cas 09 — PASSED</pre>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="setup">
+  <h2>🚀 Avant de commencer</h2>
+  <ol>
+    <li>Ouvrez un terminal dans votre dossier de projet (ou utilisez <code>files/</code> de cette formation, où Playwright est déjà installé).</li>
+    <li>Si rien n'est installé, laissez Claude Code s'en charger :</li>
+  </ol>
+  <pre>Vous : "Initialise un projet Playwright en TypeScript dans ce dossier."</pre>
+  <ol start="3">
+    <li>Donnez <strong>une seule fois</strong> l'instruction-cadre ci-dessous à Claude Code — elle explique la méthode de travail pour toute la session (tester + rapporter).</li>
+    <li>Pour chacune des 20 étapes suivantes, copiez-collez uniquement le texte de la case <strong>👤 User Story</strong> (ou la case "Prompt" si vous voulez plus de détail). Claude Code écrit le test, l'exécute, et met à jour le rapport tout seul.</li>
+  </ol>
+  <div class="warn"><strong>💡 Vous êtes libre :</strong> les user stories ci-dessous sont un point de départ. Reformulez avec vos propres mots — apprendre à transformer un besoin métier en test est justement l'objectif de l'exercice.</div>
+</div>
+
+<!-- INSTRUCTION-CADRE : REPORTING AUTOMATIQUE -->
+<div class="frame-instruction">
+  <h2>📋 Instruction-cadre — à donner UNE SEULE FOIS, avant la user story n°1</h2>
+  <p class="sub">Cette instruction met en place le mode de travail pour toute la session : elle évite de répéter "génère aussi le rapport" à chacune des 20 étapes.</p>
+  <div class="prompt-box">
+    <div class="prompt-label">Prompt à donner à Claude Code (une seule fois)</div>
+    <p>Nous allons tester le site <span class="highlight">https://www.saucedemo.com</span> à partir d'une série de user stories que je vais te donner une par une.
+
+Pour CHAQUE user story que je te transmets :
+1. Écris un test Playwright qui vérifie le critère d'acceptation de la user story.
+2. Exécute immédiatement ce test.
+3. Ajoute une ligne au fichier <span class="highlight">RAPPORT-TESTS-SAUCEDEMO.md</span> (crée-le avec un tableau Markdown à 4 colonnes s'il n'existe pas encore : Cas | User Story | Statut | Observation).
+4. Confirme-moi le résultat (✅ PASSED ou ❌ FAILED) avant de passer à la user story suivante.
+
+Utilise <span class="highlight">getByTestId()</span> comme sélecteur principal (le site utilise l'attribut data-test). Attends ma première user story.</p>
+  </div>
+  <div class="after"><strong>Ce qui se passe ensuite :</strong> pour chaque étape ci-dessous, vous collez juste la user story — plus besoin de reparler du rapport, Claude Code applique la consigne reçue au départ pour les 20 cas.</div>
+</div>
+
+<!-- CREDENTIALS CHEAT SHEET -->
+<div class="creds">
+  <h2>🔑 Comptes de test saucedemo.com (à réutiliser dans vos prompts)</h2>
+  <table>
+    <tr><th>Identifiant</th><th>Mot de passe</th><th>Comportement</th></tr>
+    <tr><td>standard_user</td><td>secret_sauce</td><td class="desc">Compte normal, tout fonctionne</td></tr>
+    <tr><td>locked_out_user</td><td>secret_sauce</td><td class="desc">Compte volontairement bloqué (message d'erreur)</td></tr>
+    <tr><td>problem_user</td><td>secret_sauce</td><td class="desc">Compte volontairement buggé (images produits cassées)</td></tr>
+  </table>
+</div>
+
+<!-- ══════════ GROUPE A — AUTHENTIFICATION ══════════ -->
+<div class="scenario-title">
+  <h2>Groupe A — Authentification</h2>
+  <span class="sc-badge">Cas 01 à 05</span>
+</div>
+<p class="sc-desc">Sans connexion, aucun autre scénario n'est atteignable — c'est toujours le premier point à sécuriser. Notez que 3 des 5 user stories décrivent volontairement un <strong>comportement d'erreur attendu</strong>.</p>
+
+<div class="steps-wrap">
+
+  <div class="step nav">
+    <div class="step-num">01</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Navigation</span><span class="step-title">Connexion réussie avec un utilisateur standard</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client inscrit</strong>, je veux <strong>me connecter avec des identifiants valides</strong>, afin de <strong>pouvoir accéder à mon catalogue de produits</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris un test Playwright qui va sur <span class="highlight">https://www.saucedemo.com</span>, se connecte avec l'utilisateur <span class="highlight">standard_user</span> / <span class="highlight">secret_sauce</span>, puis vérifie que l'URL contient bien "inventory.html" et que la liste de produits est visible.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 01 - connexion réussie avec un utilisateur standard'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.goto(<span class="st">'https://www.saucedemo.com/'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'username'</span>).fill(<span class="st">'standard_user'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'password'</span>).fill(<span class="st">'secret_sauce'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'login-button'</span>).click();
+  <span class="kw">await</span> expect(page).toHaveURL(<span class="fn">/inventory\.html/</span>);
+  <span class="kw">await</span> expect(page.getByTestId(<span class="st">'inventory-list'</span>)).toBeVisible();
+});</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> redirection vers <code>inventory.html</code>, la liste des 6 produits est visible.</div>
+    </div>
+  </div>
+
+  <div class="step negatif assert">
+    <div class="step-num">02</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Cas négatif</span><span class="step-title">Refus de connexion si les champs sont vides</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>visiteur</strong>, je veux <strong>être averti si je tente de me connecter sans remplir les champs</strong>, afin de <strong>comprendre pourquoi je ne peux pas continuer</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris un test qui clique sur le bouton de connexion <span class="highlight">sans rien remplir</span> et vérifie qu'un message d'erreur contenant "Username is required" s'affiche.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 02 - refus de connexion si les champs sont vides'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.goto(<span class="st">'/'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'login-button'</span>).click();
+  <span class="kw">await</span> expect(page.getByTestId(<span class="st">'error'</span>)).toHaveText(<span class="fn">/Username is required/</span>);
+});</pre>
+      </div>
+      <div class="assert-result negatif"><span class="icon">🚫</span> <strong>Résultat attendu :</strong> message d'erreur "Epic sadface: Username is required" — aucune connexion.</div>
+    </div>
+  </div>
+
+  <div class="step negatif assert">
+    <div class="step-num">03</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Cas négatif</span><span class="step-title">Refus de connexion avec un mauvais mot de passe</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>visiteur</strong>, je veux <strong>être informé clairement si mon mot de passe est incorrect</strong>, afin de <strong>pouvoir corriger ma saisie</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris un test qui essaie de se connecter avec <span class="highlight">standard_user</span> et un mot de passe volontairement faux, et vérifie qu'un message d'erreur indique que les identifiants ne correspondent à aucun utilisateur.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 03 - refus de connexion avec un mauvais mot de passe'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.goto(<span class="st">'/'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'username'</span>).fill(<span class="st">'standard_user'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'password'</span>).fill(<span class="st">'mauvais_mot_de_passe'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'login-button'</span>).click();
+  <span class="kw">await</span> expect(page.getByTestId(<span class="st">'error'</span>)).toHaveText(<span class="fn">/do not match any user in this service/</span>);
+});</pre>
+      </div>
+      <div class="assert-result negatif"><span class="icon">🚫</span> <strong>Résultat attendu :</strong> message d'erreur explicite, connexion refusée.</div>
+    </div>
+  </div>
+
+  <div class="step negatif assert">
+    <div class="step-num">04</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Cas négatif</span><span class="step-title">Connexion bloquée pour un utilisateur désactivé</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>gestionnaire du site</strong>, je veux <strong>qu'un compte désactivé ne puisse pas se connecter</strong>, afin de <strong>protéger les comptes suspendus</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris un test qui tente de se connecter avec <span class="highlight">locked_out_user</span> / secret_sauce, vérifie le message "Sorry, this user has been locked out" et vérifie qu'on reste bien sur la page de connexion (pas de redirection).</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 04 - connexion bloquée pour un utilisateur désactivé'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.goto(<span class="st">'/'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'username'</span>).fill(<span class="st">'locked_out_user'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'password'</span>).fill(<span class="st">'secret_sauce'</span>);
+  <span class="kw">await</span> page.getByTestId(<span class="st">'login-button'</span>).click();
+  <span class="kw">await</span> expect(page.getByTestId(<span class="st">'error'</span>)).toHaveText(<span class="fn">/Sorry, this user has been locked out/</span>);
+  <span class="kw">await</span> expect(page).toHaveURL(<span class="st">'https://www.saucedemo.com/'</span>);
+});</pre>
+      </div>
+      <div class="assert-result negatif"><span class="icon">🚫</span> <strong>Résultat attendu :</strong> message de blocage affiché, navigation vers le catalogue bloquée.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> ce cas illustre pourquoi on garde des comptes de test "cassés exprès" — sans eux, impossible de vérifier qu'une erreur est correctement gérée.</div>
+    </div>
+  </div>
+
+  <div class="step nav">
+    <div class="step-num">05</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Navigation</span><span class="step-title">Déconnexion via le menu</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client connecté</strong>, je veux <strong>pouvoir me déconnecter facilement</strong>, afin de <strong>sécuriser mon compte sur un poste partagé</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris un test qui se connecte normalement, ouvre le menu latéral (icône ☰ en haut à gauche), clique sur "Logout", et vérifie qu'on revient bien sur la page de connexion avec le bouton de connexion visible.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 05 - déconnexion via le menu ramène vers la page de connexion'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="cm">// ... connexion préalable avec standard_user ...</span>
+  <span class="kw">await</span> page.locator(<span class="st">'#react-burger-menu-btn'</span>).click();
+  <span class="kw">await</span> page.getByTestId(<span class="st">'logout-sidebar-link'</span>).click();
+  <span class="kw">await</span> expect(page).toHaveURL(<span class="st">'https://www.saucedemo.com/'</span>);
+  <span class="kw">await</span> expect(page.getByTestId(<span class="st">'login-button'</span>)).toBeVisible();
+});</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> retour à l'écran de connexion, session bien terminée.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GROUPE B — CATALOGUE ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Groupe B — Catalogue produits</h2>
+  <span class="sc-badge">Cas 06 à 08</span>
+</div>
+<p class="sc-desc">Un bon test ne se contente pas de dire "ça s'affiche" — il vérifie mathématiquement qu'un tri est réellement appliqué.</p>
+
+<div class="steps-wrap">
+
+  <div class="step assert">
+    <div class="step-num">06</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Le catalogue affiche 6 produits complets</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>voir tous les produits disponibles avec leur nom, prix et image</strong>, afin de <strong>faire mon choix facilement</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Après connexion, vérifie que le catalogue affiche exactement <span class="highlight">6 produits</span>, et que le premier produit a bien un nom visible, un prix contenant "$" et une image.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre>const produits = page.getByTestId(<span class="st">'inventory-item'</span>);
+<span class="kw">await</span> expect(produits).toHaveCount(<span class="fn">6</span>);
+
+const premier = produits.first();
+<span class="kw">await</span> expect(premier.getByTestId(<span class="st">'inventory-item-name'</span>)).toBeVisible();
+<span class="kw">await</span> expect(premier.getByTestId(<span class="st">'inventory-item-price'</span>)).toContainText(<span class="st">'$'</span>);
+<span class="kw">await</span> expect(premier.locator(<span class="st">'img'</span>)).toBeVisible();</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> 6 produits, chacun avec nom, prix en $ et image chargée.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">07</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Le tri par prix croissant réordonne réellement</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>trier les produits du moins cher au plus cher</strong>, afin de <strong>trouver rapidement les meilleures affaires</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Sélectionne le tri "Price (low to high)" dans le menu déroulant du catalogue. Récupère tous les prix affichés, et vérifie <span class="highlight">par le calcul</span> (pas juste visuellement) qu'ils sont bien classés du plus petit au plus grand.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'product-sort-container'</span>).selectOption(<span class="st">'lohi'</span>);
+
+const prixTextes = <span class="kw">await</span> page.getByTestId(<span class="st">'inventory-item-price'</span>).allTextContents();
+const prix = prixTextes.map(t => parseFloat(t.replace(<span class="st">'$'</span>, <span class="st">''</span>)));
+const prixTries = [...prix].sort((a, b) => a - b);
+
+expect(prix).toEqual(prixTries);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> la liste des prix affichés est identique à sa version triée — le tri fonctionne vraiment.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> c'est la différence entre "l'interface dit qu'elle a trié" et "l'interface a vraiment trié" — un piège classique des tests trop superficiels.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">08</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Le tri par nom Z→A réordonne réellement</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>trier les produits par nom de Z à A</strong>, afin de <strong>parcourir le catalogue dans l'ordre qui me convient</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Sélectionne le tri "Name (Z to A)". Récupère les noms de produits affichés et vérifie par le calcul qu'ils sont bien classés en ordre alphabétique inversé.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'product-sort-container'</span>).selectOption(<span class="st">'za'</span>);
+
+const noms = <span class="kw">await</span> page.getByTestId(<span class="st">'inventory-item-name'</span>).allTextContents();
+const nomsTries = [...noms].sort().reverse();
+
+expect(noms).toEqual(nomsTries);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> les noms affichés correspondent exactement à leur version triée Z→A.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GROUPE C — PANIER ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Groupe C — Panier</h2>
+  <span class="sc-badge">Cas 09 à 13</span>
+</div>
+<p class="sc-desc">Le cœur du parcours e-commerce : ajouter, retirer, vérifier le contenu, réinitialiser.</p>
+
+<div class="steps-wrap">
+
+  <div class="step action">
+    <div class="step-num">09</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Action</span><span class="step-title">Ajouter un produit met le badge à 1</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>ajouter un produit à mon panier</strong>, afin de <strong>pouvoir l'acheter plus tard</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Après connexion, clique sur "Add to cart" pour le Sauce Labs Backpack. Vérifie que le badge du panier affiche "1" et que le bouton devient "Remove".</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'shopping-cart-badge'</span>)).toHaveText(<span class="st">'1'</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'remove-sauce-labs-backpack'</span>)).toBeVisible();</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> badge = 1, bouton passé en "Remove".</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">10</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Action</span><span class="step-title">Ajouter 3 produits met le badge à 3</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>ajouter plusieurs produits à mon panier</strong>, afin de <strong>préparer une commande groupée</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Ajoute 3 produits différents au panier (backpack, bike light, onesie) et vérifie que le badge affiche "3".</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-bike-light'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-onesie'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'shopping-cart-badge'</span>)).toHaveText(<span class="st">'3'</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> badge = 3 après 3 ajouts distincts.</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">11</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Action</span><span class="step-title">Retirer un produit depuis le catalogue fait disparaître le badge</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>retirer un produit du panier directement depuis le catalogue</strong>, afin de <strong>corriger une erreur sans changer de page</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Ajoute le backpack au panier, vérifie que le badge est visible, puis clique sur "Remove" directement depuis le catalogue et vérifie que le badge disparaît complètement.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'shopping-cart-badge'</span>)).toBeVisible();
+
+<span class="kw">await</span> page.getByTestId(<span class="st">'remove-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'shopping-cart-badge'</span>)).toHaveCount(<span class="fn">0</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> le badge disparaît totalement du DOM (pas juste "0" affiché).</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">12</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Le panier affiche le bon nom, prix et quantité</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>que mon panier affiche exactement ce que j'ai choisi (nom, prix, quantité)</strong>, afin de <strong>avoir confiance dans ma commande avant de payer</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Note le prix du premier produit dans le catalogue, ajoute-le au panier, va sur la page panier, et vérifie que le nom, le prix et la quantité (1) correspondent exactement à ce qui était affiché dans le catalogue.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre>const prixCatalogue = <span class="kw">await</span> page.getByTestId(<span class="st">'inventory-item-price'</span>).first().textContent();
+<span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'shopping-cart-link'</span>).click();
+
+const article = page.getByTestId(<span class="st">'inventory-item'</span>);
+<span class="kw">await</span> expect(article.getByTestId(<span class="st">'inventory-item-name'</span>)).toHaveText(<span class="st">'Sauce Labs Backpack'</span>);
+<span class="kw">await</span> expect(article.getByTestId(<span class="st">'inventory-item-price'</span>)).toHaveText(prixCatalogue ?? <span class="st">''</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'item-quantity'</span>)).toHaveText(<span class="st">'1'</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> les données du panier correspondent exactement à celles du catalogue.</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">13</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Action</span><span class="step-title">Réinitialiser l'état de l'application vide le panier</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>pouvoir réinitialiser mon panier en un clic</strong>, afin de <strong>recommencer mes achats à zéro si je me trompe</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Ajoute un produit au panier, ouvre le menu latéral, clique sur "Reset App State", et vérifie que le badge du panier a bien disparu.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> page.locator(<span class="st">'#react-burger-menu-btn'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'reset-sidebar-link'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'shopping-cart-badge'</span>)).toHaveCount(<span class="fn">0</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> panier vidé, badge disparu.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GROUPE D — FICHE PRODUIT ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Groupe D — Fiche produit</h2>
+  <span class="sc-badge">Cas 14 à 15</span>
+</div>
+<p class="sc-desc">Vérifie la cohérence entre le catalogue et la fiche détaillée d'un produit.</p>
+
+<div class="steps-wrap">
+
+  <div class="step assert">
+    <div class="step-num">14</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">La fiche produit reprend le même nom, prix et description</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>consulter le détail complet d'un produit</strong>, afin de <strong>vérifier les informations avant de l'acheter</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Note le nom et le prix du premier produit du catalogue, clique dessus pour ouvrir sa fiche, et vérifie que le nom, le prix, la description et le bouton d'ajout au panier sont bien présents et identiques.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre>const premierProduit = page.getByTestId(<span class="st">'inventory-item'</span>).first();
+const nom = <span class="kw">await</span> premierProduit.getByTestId(<span class="st">'inventory-item-name'</span>).textContent();
+const prix = <span class="kw">await</span> premierProduit.getByTestId(<span class="st">'inventory-item-price'</span>).textContent();
+
+<span class="kw">await</span> premierProduit.getByTestId(<span class="st">'inventory-item-name'</span>).click();
+<span class="kw">await</span> expect(page).toHaveURL(<span class="fn">/inventory-item\.html/</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'inventory-item-name'</span>)).toHaveText(nom ?? <span class="st">''</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'inventory-item-desc'</span>)).toBeVisible();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'add-to-cart'</span>)).toBeVisible();</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> fiche produit cohérente avec le catalogue.</div>
+      <div class="tip"><strong>⚠️ Piège réel rencontré :</strong> l'attribut technique <code>item-N-title-link</code> n'est PAS la position affichée du produit — on cible toujours le premier produit par son conteneur (<code>.first()</code>), jamais par un index supposé.</div>
+    </div>
+  </div>
+
+  <div class="step nav">
+    <div class="step-num">15</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Navigation</span><span class="step-title">"Back to products" ramène bien vers le catalogue complet</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>revenir facilement au catalogue depuis une fiche produit</strong>, afin de <strong>continuer mes achats sans perdre de temps</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Ouvre la fiche du premier produit, clique sur "Back to products", et vérifie qu'on revient bien sur le catalogue avec les 6 produits visibles.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'back-to-products'</span>).click();
+<span class="kw">await</span> expect(page).toHaveURL(<span class="fn">/inventory\.html/</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'inventory-item'</span>)).toHaveCount(<span class="fn">6</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> retour au catalogue complet, aucun produit perdu.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GROUPE E — CHECKOUT ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Groupe E — Checkout</h2>
+  <span class="sc-badge">Cas 16 à 19</span>
+</div>
+<p class="sc-desc">Le tunnel de commande complet, de la validation du formulaire jusqu'à la confirmation.</p>
+
+<div class="steps-wrap">
+
+  <div class="step negatif assert">
+    <div class="step-num">16</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Cas négatif</span><span class="step-title">Le formulaire de livraison vide affiche une erreur</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>être bloqué si je tente de valider une livraison sans mes coordonnées</strong>, afin de <strong>éviter une commande mal adressée</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Ajoute un produit au panier, va au checkout, clique sur "Continue" sans rien remplir, et vérifie qu'un message d'erreur "First Name is required" s'affiche.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'add-to-cart-sauce-labs-backpack'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'shopping-cart-link'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'checkout'</span>).click();
+<span class="kw">await</span> page.getByTestId(<span class="st">'continue'</span>).click();
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'error'</span>)).toHaveText(<span class="fn">/First Name is required/</span>);</pre>
+      </div>
+      <div class="assert-result negatif"><span class="icon">🚫</span> <strong>Résultat attendu :</strong> validation bloquée, message d'erreur explicite.</div>
+    </div>
+  </div>
+
+  <div class="step input">
+    <div class="step-num">17</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Saisie</span><span class="step-title">Un formulaire valide passe à l'étape "Overview"</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>renseigner mes coordonnées de livraison et avancer dans ma commande</strong>, afin de <strong>finaliser mon achat</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Remplis le formulaire de livraison avec prénom "Jean", nom "Dupont", code postal "1000", clique sur Continue, et vérifie qu'on arrive bien sur l'étape "checkout-step-two" avec le récapitulatif visible.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'firstName'</span>).fill(<span class="st">'Jean'</span>);
+<span class="kw">await</span> page.getByTestId(<span class="st">'lastName'</span>).fill(<span class="st">'Dupont'</span>);
+<span class="kw">await</span> page.getByTestId(<span class="st">'postalCode'</span>).fill(<span class="st">'1000'</span>);
+<span class="kw">await</span> page.getByTestId(<span class="st">'continue'</span>).click();
+<span class="kw">await</span> expect(page).toHaveURL(<span class="fn">/checkout-step-two\.html/</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'checkout-summary-container'</span>)).toBeVisible();</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> passage à l'étape 2, récapitulatif affiché.</div>
+    </div>
+  </div>
+
+  <div class="step assert">
+    <div class="step-num">18</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Le récapitulatif affiche le bon sous-total, taxe et total</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>voir le détail exact de ce que je vais payer (sous-total, taxe, total)</strong>, afin de <strong>valider ma commande en toute confiance</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Une fois à l'étape "Overview", vérifie que le sous-total, la taxe et le total affichés sont exacts pour un Sauce Labs Backpack à 29.99 $ (taxe 8%).</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> expect(page.getByTestId(<span class="st">'subtotal-label'</span>)).toHaveText(<span class="st">'Item total: $29.99'</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'tax-label'</span>)).toHaveText(<span class="st">'Tax: $2.40'</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'total-label'</span>)).toHaveText(<span class="st">'Total: $32.39'</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> 29.99 $ + 2.40 $ de taxe = 32.39 $ exactement.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> vérifier des montants précis (pas juste "un total s'affiche") détecte de vraies erreurs de calcul métier.</div>
+    </div>
+  </div>
+
+  <div class="step action">
+    <div class="step-num">19</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Action</span><span class="step-title">Finaliser la commande affiche le message de confirmation</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>client</strong>, je veux <strong>recevoir une confirmation claire une fois ma commande finalisée</strong>, afin de <strong>être rassuré que mon achat a bien été pris en compte</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Clique sur "Finish" à l'étape Overview, et vérifie qu'on arrive sur la page "checkout-complete" avec le message "Thank you for your order!".</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">await</span> page.getByTestId(<span class="st">'finish'</span>).click();
+<span class="kw">await</span> expect(page).toHaveURL(<span class="fn">/checkout-complete\.html/</span>);
+<span class="kw">await</span> expect(page.getByTestId(<span class="st">'complete-header'</span>)).toHaveText(<span class="st">'Thank you for your order!'</span>);</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> commande finalisée, message de remerciement affiché.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ GROUPE F — CAS AVANCÉ ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:28px;">
+  <h2>Groupe F — Cas avancé : régression visuelle</h2>
+  <span class="sc-badge">Cas 20</span>
+</div>
+<p class="sc-desc">Un cas plus subtil qui documente un bug connu du site, sans casser le tableau vert de la suite.</p>
+
+<div class="steps-wrap">
+
+  <div class="step assert">
+    <div class="step-num">20</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">Assertion</span><span class="step-title">Détecter que les images produits sont bien distinctes (et documenter le cas où elles ne le sont pas)</span></div>
+      <div class="user-story">
+        <div class="us-label">User Story</div>
+        En tant que <strong>responsable qualité</strong>, je veux <strong>détecter si les images produits sont correctement affichées (et documenter les cas où ce n'est pas le cas)</strong>, afin de <strong>garantir la fiabilité visuelle du catalogue</strong>.
+      </div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt / critère d'acceptation</div>
+        <p>Écris deux tests : (a) avec <span class="highlight">standard_user</span>, vérifie que les 6 images produits du catalogue ont bien 6 sources différentes ; (b) avec <span class="highlight">problem_user</span> (compte volontairement buggé par le site), documente que ce même contrôle échoue — sans faire échouer toute la suite.</p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Ce que Claude Code va générer</div>
+        <pre><span class="kw">test</span>(<span class="st">'Cas 20a - standard_user affiche 6 images distinctes'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="cm">// ... connexion standard_user ...</span>
+  const sources = <span class="kw">await</span> page.locator(<span class="st">'.inventory_item_img img'</span>).evaluateAll(
+    imgs => imgs.map(i => (i <span class="kw">as</span> HTMLImageElement).src)
+  );
+  expect(new Set(sources).size).toBe(<span class="fn">6</span>);
+});
+
+<span class="kw">test</span>(<span class="st">'Cas 20b - bug connu : problem_user affiche 6 fois la même image'</span>, <span class="kw">async</span> ({ page }) => {
+  test.fail(); <span class="cm">// documente un défaut connu, sans casser la suite</span>
+  <span class="cm">// ... connexion problem_user ...</span>
+  const sources = <span class="kw">await</span> page.locator(<span class="st">'.inventory_item_img img'</span>).evaluateAll(
+    imgs => imgs.map(i => (i <span class="kw">as</span> HTMLImageElement).src)
+  );
+  expect(new Set(sources).size).toBe(<span class="fn">6</span>);
+});</pre>
+      </div>
+      <div class="assert-result"><span class="icon">✅</span> <strong>Résultat attendu :</strong> (a) 6 images distinctes pour standard_user · (b) échec confirmé et volontairement documenté pour problem_user.</div>
+      <div class="tip"><strong>💡 Conseil formateur :</strong> <code>test.fail()</code> est l'outil idéal pour documenter un bug connu : le test reste dans la suite (traçabilité), n'est pas compté comme un échec inattendu, et alertera automatiquement si le bug venait à être corrigé sans mise à jour du test.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RAPPORT EXEMPLE -->
+<div class="report-example">
+  <h2>📄 Ce que produit RAPPORT-TESTS-SAUCEDEMO.md au fil de la session</h2>
+  <div class="re-body">
+    <p class="intro">À chaque user story traitée, Claude Code ajoute une ligne (grâce à l'instruction-cadre donnée au début). Après les 20 étapes, le fichier ressemble à ceci :</p>
+    <table class="md-report">
+      <tr><th>Cas</th><th>User Story</th><th>Statut</th><th>Observation</th></tr>
+      <tr><td>01</td><td>Connexion avec identifiants valides</td><td class="pass">✅ PASSED</td><td>Redirection inventory.html OK</td></tr>
+      <tr><td>02</td><td>Alerte si champs vides</td><td class="pass">✅ PASSED</td><td>Message d'erreur conforme</td></tr>
+      <tr><td>03</td><td>Alerte si mot de passe incorrect</td><td class="pass">✅ PASSED</td><td>—</td></tr>
+      <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+      <tr><td>18</td><td>Détail exact du montant à payer</td><td class="pass">✅ PASSED</td><td>29.99 + 2.40 = 32.39 $ exact</td></tr>
+      <tr><td>20b</td><td>Détection régression visuelle (problem_user)</td><td class="fail">❌ FAILED (attendu)</td><td>Bug connu, documenté via test.fail()</td></tr>
+    </table>
+    <div class="ellipsis">… 20 lignes au total …</div>
+  </div>
+</div>
+
+<!-- GÉNÉRER LE RAPPORT FINAL -->
+<div class="global-prompt">
+  <h2>📊 Étape finale — transformer le rapport brut en synthèse professionnelle</h2>
+  <p class="sub">Une fois les 20 user stories testées, demandez à Claude Code de mettre en forme le résultat pour une présentation à l'équipe ou au client.</p>
+  <pre>
+Le fichier <span class="url">RAPPORT-TESTS-SAUCEDEMO.md</span> contient maintenant les résultats des 20 user stories testées.
+
+Transforme-le en un <span class="kw">rapport de synthèse</span> :
+
+<span class="kw">1. Résumé en tête</span> — nombre de user stories testées, taux de réussite, liste des cas en échec (attendus ou non).
+
+<span class="kw">2. Résultats groupés par thème</span> — Authentification, Catalogue, Panier, Fiche produit, Checkout, Cas avancé — reprends pour chaque cas la user story, le statut et l'observation.
+
+<span class="kw">3. Fiches défauts</span> — pour chaque ❌, précise si le défaut est <span class="hl">connu et documenté</span> (comme le cas 20b) ou <span class="hl">inattendu</span> (à investiguer).
+
+<span class="kw">4. Recommandation finale</span> — conclus par un avis <span class="hl">GO / NO-GO</span> pour la mise en production, justifié en une phrase.
+
+Enregistre ce rapport de synthèse dans un nouveau fichier <span class="hl">RAPPORT-SYNTHESE-SAUCEDEMO.md</span>.
+  </pre>
+</div>
+
+<!-- PROMPT GLOBAL COMBINÉ -->
+<div class="global-prompt">
+  <h2>🚀 Prompt combiné — Demander toute la suite en une fois</h2>
+  <p class="sub">Une fois les 20 user stories comprises une par une, essayez ce prompt unique (après avoir donné l'instruction-cadre) pour voir comment un agent gère une demande complète, du test au rapport.</p>
+  <pre>
+Tu es un testeur QA débutant en train d'apprendre Playwright. À partir des 20 user stories suivantes contre <span class="url">https://www.saucedemo.com</span>, écris une suite de tests complète organisée en fichiers séparés par thème, exécute-la, et tiens à jour <span class="hl">RAPPORT-TESTS-SAUCEDEMO.md</span> au fur et à mesure (Cas | User Story | Statut | Observation) :
+
+<span class="kw">1. Authentification</span> — connexion valide, alerte champs vides, alerte mauvais mot de passe, blocage utilisateur désactivé, déconnexion.
+
+<span class="kw">2. Catalogue</span> — affichage complet des produits, tri croissant par prix vérifié par calcul, tri Z→A par nom vérifié par calcul.
+
+<span class="kw">3. Panier</span> — ajout d'1 produit, ajout de 3 produits, retrait depuis le catalogue, cohérence nom/prix/quantité, réinitialisation de l'état.
+
+<span class="kw">4. Fiche produit</span> — cohérence catalogue/fiche détaillée, retour au catalogue complet.
+
+<span class="kw">5. Checkout</span> — blocage formulaire vide, formulaire valide accepté, calcul exact du total, confirmation finale.
+
+<span class="kw">6. Cas avancé</span> — détection de régression visuelle sur les images produits, avec documentation du bug connu de problem_user via test.fail().
+
+Utilise <span class="hl">getByTestId()</span> comme sélecteur principal (le site utilise l'attribut data-test). Une fois les 20 user stories traitées, transforme le rapport en synthèse avec taux de réussite et recommandation GO/NO-GO.
+  </pre>
+</div>
+
+<!-- TABLE SUMMARY -->
+<div class="summary">
+  <h2>📊 Tableau récapitulatif des 20 user stories</h2>
+  <table class="rec">
+    <thead><tr><th>Cas</th><th>Groupe</th><th>Type</th><th>User story testée</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td>Authentification</td><td>Navigation</td><td>Me connecter avec des identifiants valides</td></tr>
+      <tr><td>02</td><td>Authentification</td><td>Cas négatif</td><td>Être averti si les champs sont vides</td></tr>
+      <tr><td>03</td><td>Authentification</td><td>Cas négatif</td><td>Être informé si le mot de passe est incorrect</td></tr>
+      <tr><td>04</td><td>Authentification</td><td>Cas négatif</td><td>Empêcher un compte désactivé de se connecter</td></tr>
+      <tr><td>05</td><td>Authentification</td><td>Navigation</td><td>Me déconnecter facilement</td></tr>
+      <tr><td>06</td><td>Catalogue</td><td>Assertion</td><td>Voir tous les produits avec nom, prix, image</td></tr>
+      <tr><td>07</td><td>Catalogue</td><td>Assertion</td><td>Trier du moins cher au plus cher</td></tr>
+      <tr><td>08</td><td>Catalogue</td><td>Assertion</td><td>Trier les produits par nom de Z à A</td></tr>
+      <tr><td>09</td><td>Panier</td><td>Action</td><td>Ajouter un produit à mon panier</td></tr>
+      <tr><td>10</td><td>Panier</td><td>Action</td><td>Ajouter plusieurs produits à mon panier</td></tr>
+      <tr><td>11</td><td>Panier</td><td>Action</td><td>Retirer un produit depuis le catalogue</td></tr>
+      <tr><td>12</td><td>Panier</td><td>Assertion</td><td>Voir mon panier refléter exactement mon choix</td></tr>
+      <tr><td>13</td><td>Panier</td><td>Action</td><td>Réinitialiser mon panier en un clic</td></tr>
+      <tr><td>14</td><td>Fiche produit</td><td>Assertion</td><td>Consulter le détail complet d'un produit</td></tr>
+      <tr><td>15</td><td>Fiche produit</td><td>Navigation</td><td>Revenir facilement au catalogue</td></tr>
+      <tr><td>16</td><td>Checkout</td><td>Cas négatif</td><td>Être bloqué si mes coordonnées sont manquantes</td></tr>
+      <tr><td>17</td><td>Checkout</td><td>Saisie</td><td>Renseigner mes coordonnées et avancer dans ma commande</td></tr>
+      <tr><td>18</td><td>Checkout</td><td>Assertion</td><td>Voir le détail exact de ce que je vais payer</td></tr>
+      <tr><td>19</td><td>Checkout</td><td>Action</td><td>Recevoir une confirmation claire de ma commande</td></tr>
+      <tr><td>20</td><td>Cas avancé</td><td>Assertion + bug connu</td><td>Détecter (et documenter) une régression visuelle</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

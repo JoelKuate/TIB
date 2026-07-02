@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fine-tuning des modèles IA avec Hugging Face — Digital House Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d1a;
+    --bg2:#14142b;
+    --accent:#6C63FF;
+    --accent2:#9d97ff;
+    --text:#FFFFFF;
+    --text-dim:#B8B8CC;
+    --code-bg:#16162b;
+    --ok:#4ADE80;
+    --warn:#FBBF24;
+    --danger:#F87171;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg); color:var(--text); font-family:'Poppins',sans-serif; overflow:hidden;}
+  .slide{
+    display:none; width:100vw; height:100vh; padding:70px 100px;
+    flex-direction:column; justify-content:center; position:relative;
+    background:
+      radial-gradient(circle at 85% 15%, rgba(108,99,255,0.16), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(108,99,255,0.10), transparent 40%),
+      var(--bg);
+  }
+  .slide.active{display:flex;}
+
+  #progress-track{position:fixed; top:0; left:0; width:100%; height:4px; background:rgba(255,255,255,0.08); z-index:100;}
+  #progress{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .35s ease;}
+  #counter{position:fixed; bottom:22px; right:32px; font-size:13px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; z-index:100; letter-spacing:.5px;}
+  .nav-btn{
+    position:fixed; top:50%; transform:translateY(-50%); z-index:100; width:44px; height:44px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); color:var(--text); font-size:18px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s;
+  }
+  .nav-btn:hover{background:var(--accent); border-color:var(--accent);}
+  #prev-btn{left:24px;} #next-btn{right:24px;}
+  .logo-tag{position:fixed; top:20px; left:32px; font-size:12px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; z-index:100; font-weight:600;}
+  .logo-tag span{color:var(--accent2);}
+
+  .slide-tag{display:inline-block; font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); margin-bottom:14px;}
+  .slide-title{font-size:32px; font-weight:700; margin-bottom:14px; max-width:920px; line-height:1.25;}
+  .slide-intro{font-size:16px; color:var(--text-dim); max-width:880px; margin-bottom:16px; line-height:1.6;}
+  .points{list-style:none; max-width:880px;}
+  .points li{position:relative; padding-left:28px; margin-bottom:11px; font-size:16.5px; color:var(--text-dim); line-height:1.5;}
+  .points li::before{content:"▸"; position:absolute; left:0; color:var(--accent2); font-weight:700;}
+  .points li strong{color:var(--text); font-weight:600;}
+  .note{margin-top:14px; padding:14px 18px; max-width:860px; background:rgba(108,99,255,0.09); border-left:3px solid var(--accent); border-radius:6px; font-size:14px; color:var(--text-dim);}
+  .note strong{color:var(--accent2);}
+
+  pre.code-block{
+    background:var(--code-bg); border:1px solid rgba(255,255,255,0.08); border-left:4px solid var(--accent);
+    border-radius:8px; padding:16px 20px; max-width:900px; overflow-x:auto;
+    font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6; margin-top:6px;
+  }
+  pre.code-block code{color:#E4E4F0;}
+  .cm{color:#7A7A99;} .kw{color:#C792EA;} .st{color:#A5E844;} .fn{color:#82AAFF;} .pr{color:#FFCB6B;} .dc{color:#FF9E64;}
+
+  .breakdown{margin-top:10px; max-width:900px; background:rgba(108,99,255,0.06); border:1px solid rgba(108,99,255,0.16); border-radius:8px; padding:12px 16px;}
+  .breakdown .bd-title{font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--accent2); margin-bottom:8px;}
+  .bd-row{display:flex; gap:14px; padding:4px 0; align-items:baseline; font-size:13px;}
+  .bd-row .bd-code{font-family:'JetBrains Mono',monospace; color:var(--accent2); background:rgba(108,99,255,0.15); padding:2px 8px; border-radius:4px; flex-shrink:0; min-width:150px; font-size:12px;}
+  .bd-row .bd-desc{color:var(--text-dim); line-height:1.5;}
+
+  .mini-example{margin-top:10px; max-width:900px; background:rgba(74,222,128,0.06); border-left:3px solid var(--ok); border-radius:0 8px 8px 0; padding:12px 16px;}
+  .mini-example .me-title{font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--ok); margin-bottom:8px;}
+  .mini-example pre.code-block{margin-top:0; border-left-color:var(--ok);}
+  .mini-example .me-explain{margin-top:8px; font-size:12.5px; color:var(--text-dim);}
+
+  .slide-cover{align-items:flex-start;}
+  .cover-eyebrow{font-size:14px; letter-spacing:3px; text-transform:uppercase; color:var(--accent2); font-weight:600; margin-bottom:20px;}
+  .cover-title{font-size:58px; font-weight:800; line-height:1.1; max-width:900px;}
+  .cover-title .hl{color:var(--accent2);}
+  .cover-sub{font-size:18px; color:var(--text-dim); margin-top:20px; max-width:700px; font-weight:300;}
+  .cover-meta{margin-top:44px; display:flex; gap:40px; flex-wrap:wrap;}
+  .cover-meta div{font-size:13px; color:var(--text-dim);}
+  .cover-meta div b{display:block; color:var(--text); font-size:15px; font-weight:600; margin-bottom:2px;}
+  .cover-badge{position:absolute; bottom:56px; right:100px; text-align:right; font-size:13px; color:var(--text-dim);}
+  .cover-badge b{color:var(--accent2); font-size:15px;}
+
+  .bio-wrap{display:flex; gap:60px; align-items:center; max-width:1000px;}
+  .bio-avatar{width:150px; height:150px; border-radius:24px; flex-shrink:0; background:linear-gradient(135deg, var(--accent), #2b2470); display:flex; align-items:center; justify-content:center; font-size:54px; font-weight:800; box-shadow:0 20px 50px rgba(108,99,255,0.35);}
+  .bio-name{font-size:30px; font-weight:700;}
+  .bio-role{font-size:15px; color:var(--accent2); margin-bottom:18px; font-weight:500;}
+  .bio-list{list-style:none; font-size:15px; color:var(--text-dim); line-height:1.85;}
+  .bio-list li::before{content:"— "; color:var(--accent2);}
+  .bio-contact{margin-top:16px; font-size:14px; color:var(--text);}
+
+  .agenda-list{max-width:820px; display:flex; flex-direction:column; gap:12px;}
+  .agenda-item{display:flex; align-items:center; gap:20px; padding:13px 20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px;}
+  .agenda-num{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent2); font-size:15px; width:34px; flex-shrink:0;}
+  .agenda-item div.label{font-size:15.5px; font-weight:500;}
+  .agenda-item div.dur{margin-left:auto; font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace;}
+
+  .slide-divider{align-items:center; text-align:center;}
+  .section-tag{font-size:14px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--accent2); margin-bottom:18px;}
+  .section-title{font-size:46px; font-weight:800; max-width:840px;}
+  .section-sub{font-size:16px; color:var(--text-dim); margin-top:16px;}
+
+  .slide-exercice{background:radial-gradient(circle at 85% 15%, rgba(74,222,128,0.10), transparent 45%), var(--bg); border-top:3px solid var(--ok);}
+  .exo-tag{font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--ok); margin-bottom:12px;}
+  .exo-title{font-size:28px; font-weight:700; margin-bottom:8px;}
+  .exo-durée{font-size:13px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; margin-bottom:18px;}
+  .exo-steps{max-width:850px; padding-left:22px; margin-bottom:14px;}
+  .exo-steps li{margin-bottom:8px; font-size:15px; color:var(--text-dim); line-height:1.5;}
+  .exo-steps li strong{color:var(--text);}
+  .exo-livrable{margin-top:6px; padding:12px 18px; max-width:820px; background:rgba(74,222,128,0.08); border-left:3px solid var(--ok); border-radius:6px; font-size:13.5px; color:var(--text-dim);}
+  .exo-livrable strong{color:var(--ok);}
+
+  .recap-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 36px; max-width:940px;}
+  .recap-card{padding:16px 18px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; font-size:14px; color:var(--text-dim);}
+  .recap-card b{display:block; color:var(--accent2); font-size:14.5px; margin-bottom:4px;}
+
+  .slide-cta{align-items:center; text-align:center;}
+  .slide-cta h2{font-size:52px; font-weight:800;}
+  .slide-cta p{font-size:17px; color:var(--text-dim); margin-top:12px;}
+  .cta-links{display:flex; gap:16px; margin-top:32px;}
+  .cta-links a{padding:13px 24px; border-radius:10px; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; font-size:14.5px; transition:.2s;}
+  .cta-links a:hover{background:var(--accent2); transform:translateY(-2px);}
+  .cta-socials{margin-top:26px; font-size:13px; color:var(--text-dim); letter-spacing:.5px;}
+
+  .two-col{display:flex; gap:44px; max-width:960px;}
+  .two-col > div{flex:1;}
+  .mini-label{font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px;}
+
+  table.cmp{width:100%; max-width:900px; border-collapse:collapse; margin-top:8px;}
+  table.cmp th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--accent2); padding:8px 12px; border-bottom:2px solid rgba(255,255,255,0.12);}
+  table.cmp td{font-size:13.5px; color:var(--text-dim); padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.06); vertical-align:top;}
+  table.cmp td strong{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div id="progress-track"><div id="progress"></div></div>
+<div class="logo-tag">Digital House Company <span>· Fine-tuning IA</span></div>
+<div id="counter">1 / 47</div>
+<div class="nav-btn" id="prev-btn">‹</div>
+<div class="nav-btn" id="next-btn">›</div>
+
+<!-- 1. COVER -->
+<section class="slide slide-cover active">
+  <div class="cover-eyebrow">Formation technique · Niveau intermédiaire / avancé</div>
+  <h1 class="cover-title">Fine-tuning des modèles IA<br><span class="hl">avec Hugging Face</span></h1>
+  <p class="cover-sub">Comprendre, préparer, entraîner et partager un modèle spécialisé — avec les vraies bibliothèques (transformers, datasets, peft) et du code exécutable.</p>
+  <div class="cover-meta">
+    <div><b>Public</b>Développeurs, data scientists, automaticiens IA</div>
+    <div><b>Format</b>Théorie + walkthrough de code + exercices</div>
+    <div><b>Prérequis</b>Bases Python, notions de deep learning appréciées</div>
+  </div>
+  <div class="cover-badge">
+    <b>Digital House Company</b>
+    hello@dhcompany.pro
+  </div>
+</section>
+
+<!-- 2. QUI SUIS-JE -->
+<section class="slide">
+  <div class="slide-tag">Formateur</div>
+  <div class="bio-wrap">
+    <div class="bio-avatar">JK</div>
+    <div>
+      <div class="bio-name">Joël Parfait Kuate</div>
+      <div class="bio-role">Ingénieur IA · Consultant &amp; Formateur certifié</div>
+      <ul class="bio-list">
+        <li>Master en Architecture Logicielle &amp; Big Data</li>
+        <li>7+ ans de formation — 600+ organisations formées en Belgique</li>
+        <li>Fondateur : Digital House Company (Belgique), MS JOYCE SARL (Cameroun)</li>
+        <li>Auteur : « L'Afrique et l'Intelligence Artificielle » (2024)</li>
+        <li>Chargé de Mission — Ambassade de Côte d'Ivoire au Benelux</li>
+        <li>Projets : ia4africa.org · FormIA · SANDYKIT · Jurisis.be · Indibot.be</li>
+      </ul>
+      <div class="bio-contact">hello@dhcompany.pro · @DigitalMaker237</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. AGENDA -->
+<section class="slide">
+  <div class="slide-tag">Programme de la session</div>
+  <h2 class="slide-title">Agenda</h2>
+  <div class="agenda-list">
+    <div class="agenda-item"><div class="agenda-num">01</div><div class="label">Comprendre le fine-tuning</div><div class="dur">25 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">02</div><div class="label">L'écosystème Hugging Face</div><div class="dur">25 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">03</div><div class="label">Préparer les données</div><div class="dur">25 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">04</div><div class="label">Fine-tuning pas à pas (Trainer)</div><div class="dur">40 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">05</div><div class="label">LoRA / QLoRA en détail</div><div class="dur">30 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">06</div><div class="label">Évaluer le modèle fine-tuné</div><div class="dur">20 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">07</div><div class="label">Déployer &amp; partager sur le Hub</div><div class="dur">20 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">08</div><div class="label">Exercices pratiques</div><div class="dur">40 min</div></div>
+    <div class="agenda-item"><div class="agenda-num">09</div><div class="label">Bonnes pratiques &amp; récap</div><div class="dur">15 min</div></div>
+  </div>
+</section>
+
+<!-- 4. DIVIDER MODULE 1 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 01</div>
+  <h1 class="section-title">Comprendre le fine-tuning</h1>
+  <p class="section-sub">Ce que c'est, quand l'utiliser, quand s'en passer</p>
+</section>
+
+<!-- 5. Qu'est-ce que le fine-tuning -->
+<section class="slide">
+  <div class="slide-tag">01.1 — Définition</div>
+  <h2 class="slide-title">Qu'est-ce que le fine-tuning ?</h2>
+  <p class="slide-intro">Un modèle de langage pré-entraîné (comme Llama, Mistral ou BERT) a déjà appris la structure générale du langage sur d'énormes volumes de texte. Le <strong>fine-tuning</strong> consiste à poursuivre son entraînement sur un jeu de données plus petit et spécialisé, pour qu'il adapte son comportement à une tâche ou un domaine précis.</p>
+  <ul class="points">
+    <li>On ne repart <strong>jamais de zéro</strong> : on part d'un modèle déjà compétent en langage général</li>
+    <li>On ajuste ses <strong>poids internes</strong> (les paramètres du réseau de neurones) à partir de nouveaux exemples</li>
+    <li>Le résultat est un modèle qui reproduit mieux un <strong>style, un format, ou un vocabulaire</strong> spécifique</li>
+  </ul>
+  <div class="note"><strong>Analogie :</strong> c'est l'équivalent d'un médecin généraliste qui suit une spécialisation en cardiologie — il garde toutes ses connaissances de base, mais devient nettement plus pointu sur un domaine précis.</div>
+</section>
+
+<!-- 6. Les 3 leviers -->
+<section class="slide">
+  <div class="slide-tag">01.2 — Situer le fine-tuning</div>
+  <h2 class="slide-title">Trois leviers pour personnaliser un LLM</h2>
+  <p class="slide-intro">Le fine-tuning n'est qu'une des trois façons d'adapter un modèle à un besoin métier. Elles ne s'excluent pas : on les combine souvent.</p>
+  <table class="cmp">
+    <tr><th>Levier</th><th>Ce qu'on change</th><th>Coût</th><th>Idéal pour</th></tr>
+    <tr><td><strong>Prompt engineering</strong></td><td>Rien dans le modèle — juste la question posée</td><td>Quasi nul</td><td>Prototypage rapide, cas simples</td></tr>
+    <tr><td><strong>RAG</strong></td><td>Rien dans le modèle — on lui fournit des documents au moment de la question</td><td>Faible à modéré</td><td>Connaissances factuelles à jour</td></tr>
+    <tr><td><strong>Fine-tuning</strong></td><td>Les poids internes du modèle lui-même</td><td>Modéré à élevé</td><td>Style, format, vocabulaire, tâche répétitive</td></tr>
+  </table>
+  <div class="note">Règle de décision courante : commencer par le prompt engineering, ajouter du RAG si le modèle manque de connaissances, et ne fine-tuner que si le comportement lui-même (pas la connaissance) doit changer durablement.</div>
+</section>
+
+<!-- 7. Quand fine-tuner -->
+<section class="slide">
+  <div class="slide-tag">01.3 — Cas d'usage réels</div>
+  <h2 class="slide-title">Quand fine-tuner (et quand s'en passer)</h2>
+  <div class="two-col">
+    <div>
+      <div class="mini-label" style="color:var(--ok);">✓ Bons cas d'usage</div>
+      <ul class="points">
+        <li>Adopter un <strong>ton de marque</strong> constant</li>
+        <li>Produire un <strong>format de sortie</strong> précis (JSON structuré, code)</li>
+        <li>Maîtriser un <strong>vocabulaire technique</strong> ou une langue peu représentée</li>
+        <li>Réduire un prompt système trop long et répété</li>
+      </ul>
+    </div>
+    <div>
+      <div class="mini-label" style="color:var(--danger);">✗ À éviter</div>
+      <ul class="points">
+        <li>Ajouter des <strong>faits qui changent souvent</strong> (préférer le RAG)</li>
+        <li>Corriger un besoin qu'un <strong>meilleur prompt</strong> résoudrait déjà</li>
+        <li>Sans <strong>données de qualité</strong> en quantité suffisante</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note"><strong>Piège fréquent :</strong> fine-tuner pour "apprendre des faits" au modèle est souvent une mauvaise idée — le modèle les mémorise mal et ils deviennent vite obsolètes. Le RAG est presque toujours préférable pour de la connaissance factuelle.</div>
+</section>
+
+<!-- 8. Les grandes familles -->
+<section class="slide">
+  <div class="slide-tag">01.4 — Les approches techniques</div>
+  <h2 class="slide-title">Full fine-tuning, PEFT, instruction tuning</h2>
+  <p class="slide-intro">Toutes les approches ne modifient pas le modèle de la même façon. Ce cours se concentre sur PEFT (et LoRA en particulier), l'approche la plus accessible aujourd'hui.</p>
+  <ul class="points">
+    <li><strong>Full fine-tuning</strong> : on réentraîne TOUS les paramètres du modèle — très coûteux en mémoire GPU, réservé aux gros moyens</li>
+    <li><strong>PEFT</strong> (Parameter-Efficient Fine-Tuning) : on n'entraîne qu'une petite fraction des paramètres (souvent &lt;1%) — l'approche LoRA/QLoRA, détaillée au Module 05</li>
+    <li><strong>Instruction tuning</strong> : un fine-tuning particulier où les données sont des paires "instruction → réponse", pour apprendre à un modèle à mieux suivre des consignes</li>
+  </ul>
+  <div class="note">Dans l'immense majorité des projets réels aujourd'hui, on utilise PEFT (LoRA) plutôt que le full fine-tuning : le gain de qualité est proche, pour une fraction du coût en calcul et en mémoire.</div>
+</section>
+
+<!-- 9. DIVIDER MODULE 2 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 02</div>
+  <h1 class="section-title">L'écosystème Hugging Face</h1>
+  <p class="section-sub">Le Hub et les bibliothèques qu'on va utiliser tout au long du cours</p>
+</section>
+
+<!-- 10. Le Hub -->
+<section class="slide">
+  <div class="slide-tag">02.1 — Le point de départ</div>
+  <h2 class="slide-title">Le Hub Hugging Face</h2>
+  <p class="slide-intro">Hugging Face Hub (huggingface.co) est une plateforme communautaire qui héberge des centaines de milliers de modèles, datasets et démonstrations, la plupart réutilisables librement.</p>
+  <ul class="points">
+    <li><strong>Models</strong> : modèles pré-entraînés prêts à l'emploi ou à fine-tuner (BERT, Llama, Mistral, Whisper...)</li>
+    <li><strong>Datasets</strong> : jeux de données prêts à charger en une ligne de code</li>
+    <li><strong>Spaces</strong> : démonstrations interactives hébergées (souvent avec Gradio ou Streamlit)</li>
+    <li>Chaque ressource a un <strong>identifiant unique</strong> au format <code>organisation/nom</code>, ex : <code>meta-llama/Llama-3.1-8B</code></li>
+  </ul>
+  <div class="note"><strong>Réflexe à prendre :</strong> avant de fine-tuner quoi que ce soit, cherchez sur le Hub si un modèle déjà fine-tuné pour un besoin proche du vôtre n'existe pas — cela évite parfois tout le travail.</div>
+</section>
+
+<!-- 11. transformers -->
+<section class="slide">
+  <div class="slide-tag">02.2 — La bibliothèque centrale</div>
+  <h2 class="slide-title"><code>transformers</code></h2>
+  <p class="slide-intro">La bibliothèque Python qui permet de charger, utiliser et entraîner la quasi-totalité des modèles du Hub avec une API unifiée — quel que soit le modèle, le code pour le charger se ressemble toujours.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer, AutoModelForSequenceClassification
+
+model_name = <span class="st">"distilbert-base-uncased"</span>
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=<span class="pr">2</span>)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">AutoTokenizer</span><span class="bd-desc">découpe le texte en "tokens" (unités que le modèle comprend) — le bon tokenizer est choisi automatiquement selon le modèle</span></div>
+    <div class="bd-row"><span class="bd-code">AutoModelFor...</span><span class="bd-desc">charge l'architecture adaptée à la tâche (classification, génération de texte...) ; le préfixe "Auto" évite de connaître la classe exacte</span></div>
+    <div class="bd-row"><span class="bd-code">.from_pretrained()</span><span class="bd-desc">télécharge (ou réutilise en cache) les poids déjà entraînés depuis le Hub, à partir de l'identifiant du modèle</span></div>
+  </div>
+</section>
+
+<!-- 12. datasets -->
+<section class="slide">
+  <div class="slide-tag">02.3 — Charger des données</div>
+  <h2 class="slide-title"><code>datasets</code></h2>
+  <p class="slide-intro">La bibliothèque <code>datasets</code> permet de charger un jeu de données du Hub (ou local) en une seule ligne, avec un format standardisé quel que soit la source.</p>
+  <pre class="code-block"><code><span class="kw">from</span> datasets <span class="kw">import</span> load_dataset
+
+dataset = load_dataset(<span class="st">"imdb"</span>)
+<span class="kw">print</span>(dataset)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">load_dataset("imdb")</span><span class="bd-desc">télécharge le dataset "imdb" (critiques de films) depuis le Hub — même principe que from_pretrained() pour les modèles</span></div>
+    <div class="bd-row"><span class="bd-code">dataset</span><span class="bd-desc">un objet qui contient généralement des sous-ensembles nommés ("train", "test") accessibles par clé, comme un dictionnaire</span></div>
+  </div>
+  <div class="mini-example">
+    <div class="me-title">🧪 Mini-exemple — charger son propre fichier</div>
+    <pre class="code-block"><code>dataset = load_dataset(<span class="st">"json"</span>, data_files=<span class="st">"mon_dataset.jsonl"</span>)</code></pre>
+    <div class="me-explain">On n'est pas limité aux datasets publics : le même outil charge un fichier JSON Lines local avec la même API.</div>
+  </div>
+</section>
+
+<!-- 13. peft -->
+<section class="slide">
+  <div class="slide-tag">02.4 — Fine-tuning léger</div>
+  <h2 class="slide-title"><code>peft</code> — LoRA et QLoRA</h2>
+  <p class="slide-intro">La bibliothèque <code>peft</code> (Parameter-Efficient Fine-Tuning) de Hugging Face implémente les techniques qui permettent de fine-tuner un modèle en n'entraînant qu'une infime fraction de ses paramètres. Détaillée en profondeur au Module 05.</p>
+  <ul class="points">
+    <li><strong>LoraConfig</strong> : configure la méthode LoRA (Low-Rank Adaptation)</li>
+    <li><strong>get_peft_model()</strong> : "enveloppe" un modèle existant pour n'entraîner que les nouvelles petites matrices ajoutées</li>
+    <li>Fonctionne avec presque tous les modèles de <code>transformers</code>, sans les modifier</li>
+  </ul>
+  <div class="note">Sans <code>peft</code>, fine-tuner un modèle de plusieurs milliards de paramètres nécessite plusieurs GPU professionnels. Avec LoRA, c'est souvent possible sur une seule carte grand public.</div>
+</section>
+
+<!-- 14. TRL / SFTTrainer -->
+<section class="slide">
+  <div class="slide-tag">02.5 — Pour les grands modèles de langage</div>
+  <h2 class="slide-title"><code>trl</code> et <code>SFTTrainer</code></h2>
+  <p class="slide-intro">Pour le fine-tuning par instructions de LLM génératifs (type chatbot), Hugging Face propose <code>trl</code> (Transformer Reinforcement Learning), avec un entraîneur spécialisé qui simplifie encore le code du Module 04.</p>
+  <pre class="code-block"><code><span class="kw">from</span> trl <span class="kw">import</span> SFTTrainer, SFTConfig
+
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset[<span class="st">"train"</span>],
+    args=SFTConfig(output_dir=<span class="st">"./resultats"</span>),
+)
+trainer.train()</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">SFTTrainer</span><span class="bd-desc">"Supervised Fine-Tuning" — une version du Trainer standard, pré-adaptée aux formats instruction/réponse</span></div>
+    <div class="bd-row"><span class="bd-code">SFTConfig</span><span class="bd-desc">variante de TrainingArguments (vu au Module 04) avec des réglages par défaut pensés pour les LLM</span></div>
+  </div>
+  <div class="note">Le reste du cours utilise le <code>Trainer</code> générique de <code>transformers</code> — plus verbeux mais plus universel, et donc plus formateur pour comprendre ce qui se passe réellement.</div>
+</section>
+
+<!-- 15. DIVIDER MODULE 3 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 03</div>
+  <h1 class="section-title">Préparer les données</h1>
+  <p class="section-sub">La qualité du dataset détermine la qualité du modèle fine-tuné</p>
+</section>
+
+<!-- 16. Format des données -->
+<section class="slide">
+  <div class="slide-tag">03.1 — La base de tout</div>
+  <h2 class="slide-title">Format des données d'entraînement</h2>
+  <p class="slide-intro">Pour un fine-tuning par instructions, chaque exemple d'entraînement est une paire "ce qu'on demande au modèle" / "ce qu'il devrait répondre". Le format le plus courant est le JSON Lines (un objet JSON par ligne).</p>
+  <pre class="code-block"><code><span class="cm">// fichier mon_dataset.jsonl — un exemple par ligne</span>
+{<span class="dc">"instruction"</span>: <span class="st">"Résume ce texte en une phrase."</span>, <span class="dc">"input"</span>: <span class="st">"..."</span>, <span class="dc">"output"</span>: <span class="st">"..."</span>}
+{<span class="dc">"instruction"</span>: <span class="st">"Classe ce ticket support."</span>, <span class="dc">"input"</span>: <span class="st">"..."</span>, <span class="dc">"output"</span>: <span class="st">"Facturation"</span>}</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">instruction</span><span class="bd-desc">la consigne donnée au modèle, constante ou variable selon les exemples</span></div>
+    <div class="bd-row"><span class="bd-code">input</span><span class="bd-desc">le contexte ou contenu sur lequel appliquer l'instruction (peut être vide pour certaines tâches)</span></div>
+    <div class="bd-row"><span class="bd-code">output</span><span class="bd-desc">la réponse EXACTE que le modèle doit apprendre à produire — la qualité de ce champ est ce qui compte le plus</span></div>
+  </div>
+  <div class="note"><strong>Règle d'or :</strong> 200 exemples de très haute qualité, cohérents et représentatifs, valent souvent mieux que 10 000 exemples bruités ou incohérents entre eux.</div>
+</section>
+
+<!-- 17. Charger un dataset -->
+<section class="slide">
+  <div class="slide-tag">03.2 — En pratique</div>
+  <h2 class="slide-title">Charger et explorer un dataset</h2>
+  <p class="slide-intro">Une fois le dataset chargé (via le Hub ou un fichier local), on l'explore toujours avant de l'utiliser — pour repérer les erreurs de format ou de contenu tôt.</p>
+  <pre class="code-block"><code>dataset = load_dataset(<span class="st">"json"</span>, data_files=<span class="st">"mon_dataset.jsonl"</span>, split=<span class="st">"train"</span>)
+
+<span class="kw">print</span>(<span class="kw">len</span>(dataset))       <span class="cm"># nombre d'exemples</span>
+<span class="kw">print</span>(dataset[<span class="pr">0</span>])       <span class="cm"># premier exemple, sous forme de dictionnaire</span>
+<span class="kw">print</span>(dataset.column_names)  <span class="cm"># noms des champs disponibles</span></code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">split="train"</span><span class="bd-desc">indique qu'on charge directement le sous-ensemble "train", pas un dictionnaire de sous-ensembles</span></div>
+    <div class="bd-row"><span class="bd-code">dataset[0]</span><span class="bd-desc">accès par index, comme une liste — utile pour inspecter visuellement quelques exemples</span></div>
+  </div>
+</section>
+
+<!-- 18. Split train/test -->
+<section class="slide">
+  <div class="slide-tag">03.3 — Séparer pour évaluer</div>
+  <h2 class="slide-title">Découper en jeu d'entraînement et de test</h2>
+  <p class="slide-intro">On garde toujours une partie des données à l'écart de l'entraînement, pour vérifier ensuite que le modèle généralise bien — et ne se contente pas de "mémoriser" ce qu'il a vu.</p>
+  <pre class="code-block"><code>dataset_split = dataset.train_test_split(test_size=<span class="pr">0.1</span>, seed=<span class="pr">42</span>)
+
+train_dataset = dataset_split[<span class="st">"train"</span>]  <span class="cm"># 90% des exemples</span>
+eval_dataset = dataset_split[<span class="st">"test"</span>]    <span class="cm"># 10% des exemples, jamais vus à l'entraînement</span></code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">test_size=0.1</span><span class="bd-desc">réserve 10% des exemples pour l'évaluation (proportion courante : 5 à 20%)</span></div>
+    <div class="bd-row"><span class="bd-code">seed=42</span><span class="bd-desc">fige le hasard du découpage : relancer le code produit exactement le même split, pour des résultats reproductibles</span></div>
+  </div>
+</section>
+
+<!-- 19. Tokenisation -->
+<section class="slide">
+  <div class="slide-tag">03.4 — Rendre le texte compréhensible pour le modèle</div>
+  <h2 class="slide-title">Tokeniser le dataset</h2>
+  <p class="slide-intro">Un modèle ne "lit" pas du texte brut : il manipule des nombres (tokens). Il faut donc transformer chaque exemple texte en identifiants numériques, via le tokenizer associé au modèle.</p>
+  <pre class="code-block"><code><span class="kw">def</span> tokenize(exemple):
+    <span class="kw">return</span> tokenizer(exemple[<span class="st">"input"</span>], padding=<span class="st">"max_length"</span>, truncation=<span class="kw">True</span>)
+
+dataset_tokenise = dataset.<span class="fn">map</span>(tokenize, batched=<span class="kw">True</span>)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">padding="max_length"</span><span class="bd-desc">complète les textes courts pour que tous les exemples d'un lot aient la même longueur (nécessaire pour l'entraînement en lots)</span></div>
+    <div class="bd-row"><span class="bd-code">truncation=True</span><span class="bd-desc">coupe les textes trop longs à la limite maximale du modèle, plutôt que de provoquer une erreur</span></div>
+    <div class="bd-row"><span class="bd-code">.map(fn, batched=True)</span><span class="bd-desc">applique la fonction à TOUT le dataset, par lots (plus rapide qu'exemple par exemple)</span></div>
+  </div>
+</section>
+
+<!-- 20. DIVIDER MODULE 4 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 04</div>
+  <h1 class="section-title">Fine-tuning pas à pas</h1>
+  <p class="section-sub">Du modèle pré-entraîné au modèle spécialisé, avec le Trainer</p>
+</section>
+
+<!-- 21. Charger le modèle de base -->
+<section class="slide">
+  <div class="slide-tag">04.1 — Le point de départ</div>
+  <h2 class="slide-title">Charger le modèle pré-entraîné</h2>
+  <p class="slide-intro">On charge un modèle déjà entraîné sur du texte général, qui servira de socle. Le choix de la classe "AutoModelFor..." dépend de la tâche visée.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> AutoModelForCausalLM
+
+model_name = <span class="st">"mistralai/Mistral-7B-v0.1"</span>
+model = AutoModelForCausalLM.from_pretrained(model_name)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">AutoModelForCausalLM</span><span class="bd-desc">architecture pour la GÉNÉRATION de texte (prédire le mot suivant) — utilisée pour les chatbots/assistants</span></div>
+    <div class="bd-row"><span class="bd-code">"mistralai/Mistral-7B-v0.1"</span><span class="bd-desc">identifiant Hub du modèle : organisation "mistralai", modèle "Mistral-7B", version "v0.1"</span></div>
+  </div>
+  <div class="mini-example">
+    <div class="me-title">🧪 Mini-exemple — une autre tâche, une autre classe</div>
+    <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> AutoModelForSequenceClassification
+model = AutoModelForSequenceClassification.from_pretrained(<span class="st">"distilbert-base-uncased"</span>, num_labels=<span class="pr">3</span>)</code></pre>
+    <div class="me-explain">Pour une tâche de CLASSIFICATION (ex : sentiment positif/neutre/négatif), on utilise AutoModelForSequenceClassification à la place.</div>
+  </div>
+</section>
+
+<!-- 22. TrainingArguments -->
+<section class="slide">
+  <div class="slide-tag">04.2 — Régler l'entraînement</div>
+  <h2 class="slide-title"><code>TrainingArguments</code></h2>
+  <p class="slide-intro">Cet objet centralise tous les réglages de l'entraînement (durée, vitesse d'apprentissage, fréquence de sauvegarde...). C'est ici que se jouent la plupart des ajustements d'un fine-tuning.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir=<span class="st">"./resultats"</span>,
+    num_train_epochs=<span class="pr">3</span>,
+    per_device_train_batch_size=<span class="pr">8</span>,
+    learning_rate=<span class="pr">2e-5</span>,
+    eval_strategy=<span class="st">"epoch"</span>,
+    save_strategy=<span class="st">"epoch"</span>,
+)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage des hyperparamètres clés</div>
+    <div class="bd-row"><span class="bd-code">num_train_epochs</span><span class="bd-desc">combien de fois l'entraînement parcourt l'intégralité du dataset (souvent 2 à 5 pour du fine-tuning)</span></div>
+    <div class="bd-row"><span class="bd-code">batch_size</span><span class="bd-desc">nombre d'exemples traités simultanément — limité par la mémoire GPU disponible</span></div>
+    <div class="bd-row"><span class="bd-code">learning_rate</span><span class="bd-desc">l'ampleur de l'ajustement des poids à chaque étape — trop élevé casse le modèle, trop bas rend l'entraînement inefficace</span></div>
+    <div class="bd-row"><span class="bd-code">eval_strategy</span><span class="bd-desc">"epoch" = évalue le modèle sur eval_dataset après chaque passage complet du dataset</span></div>
+  </div>
+</section>
+
+<!-- 23. Trainer -->
+<section class="slide">
+  <div class="slide-tag">04.3 — Lancer l'entraînement</div>
+  <h2 class="slide-title"><code>Trainer</code> et <code>trainer.train()</code></h2>
+  <p class="slide-intro">Le <code>Trainer</code> assemble tout ce qu'on a préparé (modèle, données, réglages) et gère la boucle d'entraînement complète — calcul de l'erreur, ajustement des poids, sauvegardes.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> Trainer
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+)
+
+trainer.train()</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">Trainer(...)</span><span class="bd-desc">assemble les quatre ingrédients : le modèle à entraîner, ses réglages, et les deux jeux de données préparés aux Modules 03 et 04</span></div>
+    <div class="bd-row"><span class="bd-code">trainer.train()</span><span class="bd-desc">démarre réellement l'entraînement — peut durer de quelques minutes à plusieurs heures selon la taille du modèle et des données</span></div>
+  </div>
+  <div class="note">Après l'entraînement, on sauvegarde le résultat avec <code>trainer.save_model("./mon-modele")</code> — le Module 07 détaille comment le partager sur le Hub.</div>
+</section>
+
+<!-- 24. Suivre l'entraînement -->
+<section class="slide">
+  <div class="slide-tag">04.4 — Vérifier que ça se passe bien</div>
+  <h2 class="slide-title">Suivre l'entraînement en direct</h2>
+  <p class="slide-intro">Pendant <code>trainer.train()</code>, la console affiche la <strong>loss</strong> (erreur du modèle) à intervalles réguliers — la métrique la plus importante à surveiller en direct.</p>
+  <pre class="code-block"><code><span class="cm"># Extrait de la console pendant l'entraînement</span>
+{<span class="dc">'loss'</span>: <span class="pr">2.14</span>, <span class="dc">'epoch'</span>: <span class="pr">0.5</span>}
+{<span class="dc">'loss'</span>: <span class="pr">1.62</span>, <span class="dc">'epoch'</span>: <span class="pr">1.0</span>}
+{<span class="dc">'eval_loss'</span>: <span class="pr">1.58</span>, <span class="dc">'epoch'</span>: <span class="pr">1.0</span>}</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Comment interpréter</div>
+    <div class="bd-row"><span class="bd-code">loss ↓</span><span class="bd-desc">doit globalement DIMINUER au fil de l'entraînement : le modèle apprend</span></div>
+    <div class="bd-row"><span class="bd-code">eval_loss</span><span class="bd-desc">calculée sur les données JAMAIS vues à l'entraînement — la seule qui indique si le modèle généralise vraiment</span></div>
+  </div>
+  <div class="note"><strong>Signal d'alerte :</strong> si la loss d'entraînement continue de baisser mais que l'eval_loss remonte, c'est le signe d'un surapprentissage (overfitting) — voir Module 06.</div>
+</section>
+
+<!-- 25. DIVIDER MODULE 5 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 05</div>
+  <h1 class="section-title">LoRA / QLoRA en détail</h1>
+  <p class="section-sub">Fine-tuner un modèle de plusieurs milliards de paramètres sur une seule carte graphique</p>
+</section>
+
+<!-- 26. Pourquoi le full fine-tuning coûte cher -->
+<section class="slide">
+  <div class="slide-tag">05.1 — Le problème à résoudre</div>
+  <h2 class="slide-title">Pourquoi le full fine-tuning est coûteux</h2>
+  <p class="slide-intro">Réentraîner TOUS les paramètres d'un grand modèle demande de stocker en mémoire GPU : les poids du modèle, les gradients (l'ajustement calculé pour chaque poids), et l'état de l'optimiseur — plusieurs fois la taille du modèle.</p>
+  <ul class="points">
+    <li>Un modèle de <strong>7 milliards de paramètres</strong> en full fine-tuning peut nécessiter <strong>plus de 80 Go de mémoire GPU</strong></li>
+    <li>Ce niveau de mémoire n'est disponible que sur du matériel professionnel coûteux</li>
+    <li>D'où l'intérêt de <strong>PEFT</strong> : obtenir un résultat proche, avec une fraction de cette mémoire</li>
+  </ul>
+</section>
+
+<!-- 27. Le principe de LoRA -->
+<section class="slide">
+  <div class="slide-tag">05.2 — L'idée clé</div>
+  <h2 class="slide-title">Le principe de LoRA</h2>
+  <p class="slide-intro">LoRA (Low-Rank Adaptation) part d'une observation : l'AJUSTEMENT nécessaire pour spécialiser un modèle peut être représenté par des matrices beaucoup plus petites que le modèle lui-même, sans perte de qualité notable.</p>
+  <ul class="points">
+    <li>Les poids ORIGINAUX du modèle restent <strong>gelés</strong> (non modifiés)</li>
+    <li>On ajoute, à côté, deux petites matrices "A" et "B" — les seules à être entraînées</li>
+    <li>Le résultat final combine : <strong>sortie du modèle gelé + ajustement des petites matrices</strong></li>
+    <li>Concrètement, on entraîne souvent <strong>moins de 1% du nombre total de paramètres</strong></li>
+  </ul>
+  <div class="note"><strong>Analogie :</strong> plutôt que de repeindre entièrement une maison (full fine-tuning), LoRA ajoute une fine couche de vernis ciblée qui change l'aspect final, sans toucher à la structure existante.</div>
+</section>
+
+<!-- 28. Configurer LoRA -->
+<section class="slide">
+  <div class="slide-tag">05.3 — En pratique</div>
+  <h2 class="slide-title">Configurer LoRA avec <code>peft</code></h2>
+  <p class="slide-intro">Trois lignes suffisent pour transformer un modèle standard en modèle "LoRA-isé" : on définit la configuration, puis on l'applique au modèle chargé au Module 04.</p>
+  <pre class="code-block"><code><span class="kw">from</span> peft <span class="kw">import</span> LoraConfig, get_peft_model, TaskType
+
+lora_config = LoraConfig(
+    task_type=TaskType.CAUSAL_LM,
+    r=<span class="pr">8</span>,
+    lora_alpha=<span class="pr">16</span>,
+    lora_dropout=<span class="pr">0.05</span>,
+    target_modules=[<span class="st">"q_proj"</span>, <span class="st">"v_proj"</span>],
+)
+
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage des paramètres LoRA</div>
+    <div class="bd-row"><span class="bd-code">r=8</span><span class="bd-desc">le "rang" des petites matrices ajoutées — plus il est élevé, plus le modèle peut apprendre de nuances, mais plus l'entraînement coûte cher (valeurs courantes : 4 à 64)</span></div>
+    <div class="bd-row"><span class="bd-code">lora_alpha</span><span class="bd-desc">un facteur d'échelle qui pondère l'influence des matrices LoRA sur la sortie finale</span></div>
+    <div class="bd-row"><span class="bd-code">target_modules</span><span class="bd-desc">les couches précises du modèle où appliquer LoRA — souvent les couches d'attention ("query" et "value")</span></div>
+  </div>
+</section>
+
+<!-- 29. QLoRA -->
+<section class="slide">
+  <div class="slide-tag">05.4 — Aller encore plus loin</div>
+  <h2 class="slide-title">QLoRA : LoRA + quantification</h2>
+  <p class="slide-intro">QLoRA ajoute une étape supplémentaire : le modèle de base est chargé en précision réduite (4 bits au lieu de 16 ou 32 bits), ce qui divise sa taille en mémoire par 4 à 8, avant d'y appliquer LoRA.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=<span class="kw">True</span>,
+    bnb_4bit_quant_type=<span class="st">"nf4"</span>,
+    bnb_4bit_compute_dtype=<span class="st">"bfloat16"</span>,
+)
+
+model = AutoModelForCausalLM.from_pretrained(model_name, quantization_config=bnb_config)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">load_in_4bit</span><span class="bd-desc">charge les poids du modèle en 4 bits plutôt qu'en 16/32 bits — moins précis, mais beaucoup plus léger en mémoire</span></div>
+    <div class="bd-row"><span class="bd-code">bnb_4bit_quant_type</span><span class="bd-desc">"nf4" (NormalFloat4) est un format de quantification optimisé, qui préserve mieux la qualité que d'autres méthodes 4 bits</span></div>
+  </div>
+  <div class="note">QLoRA est ce qui permet de fine-tuner des modèles de 7 à 13 milliards de paramètres sur une seule carte grand public (ex : 24 Go de VRAM), là où le full fine-tuning serait impossible.</div>
+</section>
+
+<!-- 30. print_trainable_parameters -->
+<section class="slide">
+  <div class="slide-tag">05.5 — Vérifier le gain</div>
+  <h2 class="slide-title">Mesurer ce qu'on entraîne vraiment</h2>
+  <p class="slide-intro">La méthode <code>print_trainable_parameters()</code> (utilisée à la fin de la slide 05.3) affiche concrètement le gain apporté par LoRA — un chiffre qui parle souvent plus que n'importe quelle explication théorique.</p>
+  <div class="mini-example">
+    <div class="me-title">🧪 Mini-exemple — ce que la console affiche</div>
+    <pre class="code-block"><code>trainable params: 4,194,304 || all params: 7,245,533,184 || trainable%: 0.0579</code></pre>
+    <div class="me-explain">Ici, seulement <strong>0,058%</strong> des 7,2 milliards de paramètres du modèle sont réellement entraînés — le reste (99,94%) reste gelé, tel quel.</div>
+  </div>
+  <div class="note">C'est ce chiffre qui explique pourquoi LoRA rend le fine-tuning accessible : on ajuste quelques millions de paramètres au lieu de plusieurs milliards.</div>
+</section>
+
+<!-- 31. DIVIDER MODULE 6 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 06</div>
+  <h1 class="section-title">Évaluer le modèle fine-tuné</h1>
+  <p class="section-sub">S'assurer que le fine-tuning a vraiment amélioré ce qu'on visait</p>
+</section>
+
+<!-- 32. Comparer avant/après -->
+<section class="slide">
+  <div class="slide-tag">06.1 — Le test le plus simple</div>
+  <h2 class="slide-title">Comparer le modèle avant et après</h2>
+  <p class="slide-intro">Avant toute métrique chiffrée, la première vérification consiste à comparer les réponses du modèle ORIGINAL et du modèle FINE-TUNÉ sur les mêmes exemples.</p>
+  <pre class="code-block"><code><span class="kw">from</span> transformers <span class="kw">import</span> pipeline
+
+original = pipeline(<span class="st">"text-generation"</span>, model=<span class="st">"mistralai/Mistral-7B-v0.1"</span>)
+finetune  = pipeline(<span class="st">"text-generation"</span>, model=<span class="st">"./mon-modele-finetune"</span>)
+
+prompt = <span class="st">"Rédige une réponse de support pour un client insatisfait."</span>
+<span class="kw">print</span>(<span class="st">"AVANT :"</span>, original(prompt)[<span class="pr">0</span>][<span class="st">"generated_text"</span>])
+<span class="kw">print</span>(<span class="st">"APRÈS :"</span>, finetune(prompt)[<span class="pr">0</span>][<span class="st">"generated_text"</span>])</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">pipeline("text-generation", ...)</span><span class="bd-desc">crée un objet prêt à l'emploi qui encapsule modèle + tokenizer + logique de génération</span></div>
+    <div class="bd-row"><span class="bd-code">model="./mon-modele-finetune"</span><span class="bd-desc">un chemin local fonctionne exactement comme un identifiant du Hub</span></div>
+  </div>
+</section>
+
+<!-- 33. Métriques -->
+<section class="slide">
+  <div class="slide-tag">06.2 — Chiffrer la qualité</div>
+  <h2 class="slide-title">Métriques d'évaluation</h2>
+  <p class="slide-intro">Selon la tâche, différentes métriques permettent de mesurer objectivement la qualité du modèle fine-tuné, au-delà de l'observation manuelle.</p>
+  <ul class="points">
+    <li><strong>Perplexité</strong> : mesure à quel point le modèle est "surpris" par un texte — plus basse = meilleure prédiction du langage</li>
+    <li><strong>Accuracy / F1-score</strong> : pour les tâches de classification, comparaison directe avec les vraies réponses attendues</li>
+    <li><strong>Évaluation humaine</strong> : indispensable pour les tâches génératives (résumé, rédaction) où plusieurs réponses correctes existent</li>
+    <li><strong>eval_loss</strong> (vu au Module 04) : suivi en continu pendant l'entraînement, sur les données jamais vues</li>
+  </ul>
+  <div class="note">Aucune métrique automatique ne remplace totalement une relecture humaine d'un échantillon de sorties — surtout pour les tâches génératives ouvertes.</div>
+</section>
+
+<!-- 34. Risques -->
+<section class="slide">
+  <div class="slide-tag">06.3 — Ce qui peut mal tourner</div>
+  <h2 class="slide-title">Risques à surveiller</h2>
+  <ul class="points">
+    <li><strong>Overfitting (surapprentissage)</strong> : le modèle "récite" les exemples d'entraînement au lieu de généraliser — détecté quand l'eval_loss remonte alors que la loss d'entraînement continue de baisser</li>
+    <li><strong>Catastrophic forgetting</strong> : le modèle devient très bon sur la nouvelle tâche mais perd des capacités générales qu'il avait avant le fine-tuning</li>
+    <li><strong>Biais amplifiés</strong> : un dataset de fine-tuning déséquilibré peut renforcer des biais déjà présents, ou en introduire de nouveaux</li>
+  </ul>
+  <div class="note"><strong>Parades courantes :</strong> garder un jeu d'évaluation représentatif, limiter le nombre d'epochs, et tester le modèle final sur des exemples "hors sujet" pour vérifier qu'il n'a rien oublié d'important.</div>
+</section>
+
+<!-- 35. DIVIDER MODULE 7 -->
+<section class="slide slide-divider">
+  <div class="section-tag">Module 07</div>
+  <h1 class="section-title">Déployer &amp; partager</h1>
+  <p class="section-sub">Du modèle entraîné localement au modèle utilisable en production</p>
+</section>
+
+<!-- 36. push_to_hub -->
+<section class="slide">
+  <div class="slide-tag">07.1 — Publier son travail</div>
+  <h2 class="slide-title"><code>push_to_hub()</code></h2>
+  <p class="slide-intro">Une fois satisfait du résultat, on peut publier le modèle fine-tuné (et son tokenizer) directement sur le Hub — privé ou public — en une ligne de code.</p>
+  <pre class="code-block"><code>model.push_to_hub(<span class="st">"mon-compte/mon-modele-finetune"</span>)
+tokenizer.push_to_hub(<span class="st">"mon-compte/mon-modele-finetune"</span>)</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">push_to_hub(id)</span><span class="bd-desc">crée automatiquement le dépôt sur le Hub s'il n'existe pas encore, puis y téléverse les fichiers</span></div>
+    <div class="bd-row"><span class="bd-code">"mon-compte/..."</span><span class="bd-desc">requiert d'être authentifié au préalable (huggingface-cli login) avec un compte Hugging Face</span></div>
+  </div>
+  <div class="note">Publier son tokenizer en même temps que le modèle est essentiel : sans lui, personne ne peut réutiliser correctement le modèle.</div>
+</section>
+
+<!-- 37. Model Card -->
+<section class="slide">
+  <div class="slide-tag">07.2 — Documenter son modèle</div>
+  <h2 class="slide-title">Rédiger une Model Card</h2>
+  <p class="slide-intro">Chaque dépôt de modèle sur le Hub a un fichier <code>README.md</code> appelé "Model Card" — la documentation qui permet à d'autres (ou à vous-même dans 6 mois) de comprendre et réutiliser le modèle correctement.</p>
+  <ul class="points">
+    <li><strong>Description</strong> : quel modèle de base, quelle tâche, quel objectif</li>
+    <li><strong>Données d'entraînement</strong> : source, taille, période, éventuelles limitations</li>
+    <li><strong>Comment l'utiliser</strong> : exemple de code minimal fonctionnel</li>
+    <li><strong>Limites connues</strong> : cas où le modèle performe mal, biais identifiés</li>
+    <li><strong>Métriques d'évaluation</strong> : les résultats chiffrés du Module 06</li>
+  </ul>
+  <div class="note">Une Model Card incomplète est l'une des premières causes de mauvaise réutilisation d'un modèle par une autre équipe — elle fait partie intégrante du livrable, pas une option.</div>
+</section>
+
+<!-- 38. Inference -->
+<section class="slide">
+  <div class="slide-tag">07.3 — Utiliser le modèle publié</div>
+  <h2 class="slide-title">Inference : <code>pipeline()</code> et Inference Endpoints</h2>
+  <p class="slide-intro">Une fois le modèle sur le Hub, n'importe qui (avec les droits d'accès) peut le charger et l'utiliser en quelques lignes — localement, ou via un point de terminaison hébergé par Hugging Face.</p>
+  <pre class="code-block"><code><span class="cm"># Utilisation locale, après publication sur le Hub</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> pipeline
+classifieur = pipeline(<span class="st">"text-classification"</span>, model=<span class="st">"mon-compte/mon-modele-finetune"</span>)
+<span class="kw">print</span>(classifieur(<span class="st">"Ce produit est excellent !"</span>))</code></pre>
+  <div class="breakdown">
+    <div class="bd-title">Décorticage</div>
+    <div class="bd-row"><span class="bd-code">model="mon-compte/..."</span><span class="bd-desc">le même identifiant utilisé pour push_to_hub() — le modèle est retéléchargé automatiquement</span></div>
+    <div class="bd-row"><span class="bd-code">Inference Endpoints</span><span class="bd-desc">service payant de Hugging Face qui héberge le modèle derrière une API HTTP, sans gérer soi-même de serveur</span></div>
+  </div>
+</section>
+
+<!-- 39. DIVIDER EXERCICES -->
+<section class="slide slide-divider">
+  <div class="section-tag">Passons à la pratique</div>
+  <h1 class="section-title">Exercices sur Hugging Face</h1>
+  <p class="section-sub">Manipuler le Hub, la configuration LoRA et la documentation</p>
+</section>
+
+<!-- 40. Exercice 1 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 1</div>
+  <h2 class="exo-title">Explorer le Hub pour un cas d'usage donné</h2>
+  <div class="exo-durée">15 min · Individuel · huggingface.co</div>
+  <ol class="exo-steps">
+    <li>Cas d'usage : une entreprise veut classer automatiquement des tickets support en français par catégorie</li>
+    <li>Cherchez sur le Hub un <strong>modèle de base</strong> pertinent (filtrez par tâche "Text Classification" et langue "French")</li>
+    <li>Cherchez un <strong>dataset</strong> existant qui pourrait servir de point de départ ou d'inspiration de format</li>
+    <li>Notez les identifiants trouvés (format <code>organisation/nom</code>) et justifiez vos choix en 2-3 phrases</li>
+  </ol>
+  <div class="exo-livrable"><strong>Livrable attendu :</strong> un modèle et un dataset identifiés, avec une justification écrite du choix.</div>
+</section>
+
+<!-- 41. Exercice 2 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 2</div>
+  <h2 class="exo-title">Écrire une configuration LoRA</h2>
+  <div class="exo-durée">15 min · Individuel · À partir du Module 05</div>
+  <ol class="exo-steps">
+    <li>Scénario : vous disposez d'un seul GPU avec 16 Go de VRAM pour fine-tuner un modèle de 7 milliards de paramètres</li>
+    <li>Écrivez un bloc <code>LoraConfig</code> complet et cohérent avec cette contrainte de mémoire</li>
+    <li>Justifiez votre choix de <code>r</code> (rang) : pourquoi pas 64 ? pourquoi pas 1 ?</li>
+    <li>Ajoutez un bloc <code>BitsAndBytesConfig</code> (QLoRA) pour tenir dans la contrainte mémoire</li>
+  </ol>
+  <div class="exo-livrable"><strong>Livrable attendu :</strong> les deux blocs de configuration Python, commentés, avec la justification du rang choisi.</div>
+</section>
+
+<!-- 42. Exercice 3 -->
+<section class="slide slide-exercice">
+  <div class="exo-tag">⚙️ Exercice pratique 3 — bonus</div>
+  <h2 class="exo-title">Rédiger une Model Card</h2>
+  <div class="exo-durée">10 min · Individuel · Sur le modèle imaginaire de l'exercice 1</div>
+  <ol class="exo-steps">
+    <li>En reprenant le cas d'usage de classification de tickets support (exercice 1)</li>
+    <li>Rédigez une Model Card minimale : description, données d'entraînement (imaginées), comment l'utiliser, limites connues</li>
+    <li>Incluez un exemple de code d'utilisation avec <code>pipeline()</code></li>
+  </ol>
+  <div class="note"><strong>Pourquoi cet exercice compte :</strong> un modèle non documenté, même excellent, est difficilement réutilisable par une équipe — la documentation fait partie du livrable technique, pas une formalité annexe.</div>
+</section>
+
+<!-- 43. Bonnes pratiques -->
+<section class="slide">
+  <div class="slide-tag">Avant de conclure</div>
+  <h2 class="slide-title">Bonnes pratiques à retenir</h2>
+  <ul class="points">
+    <li><strong>Commencez toujours</strong> par vérifier si un prompt mieux conçu ou du RAG suffisent avant de fine-tuner</li>
+    <li><strong>Privilégiez LoRA/QLoRA</strong> au full fine-tuning, sauf besoin très spécifique et gros moyens disponibles</li>
+    <li><strong>Peu de données de qualité</strong> valent mieux que beaucoup de données bruitées</li>
+    <li>Gardez toujours un <strong>jeu d'évaluation séparé</strong>, jamais vu à l'entraînement</li>
+    <li><strong>Documentez</strong> systématiquement via une Model Card avant de partager un modèle</li>
+    <li>Comparez <strong>avant/après</strong> sur des exemples concrets, pas seulement sur des métriques abstraites</li>
+  </ul>
+</section>
+
+<!-- 44. RECAP -->
+<section class="slide">
+  <div class="slide-tag">Synthèse</div>
+  <h2 class="slide-title">Ce qu'il faut retenir</h2>
+  <div class="recap-grid">
+    <div class="recap-card"><b>Concept</b>fine-tuning = poursuivre l'entraînement d'un modèle existant sur des données spécialisées</div>
+    <div class="recap-card"><b>Écosystème</b>transformers (modèles), datasets (données), peft (LoRA), trl (instruction tuning LLM)</div>
+    <div class="recap-card"><b>Workflow</b>charger modèle + tokenizer → tokeniser les données → TrainingArguments → Trainer.train()</div>
+    <div class="recap-card"><b>LoRA</b>entraîner &lt;1% des paramètres, poids d'origine gelés — accessible sur peu de matériel</div>
+    <div class="recap-card"><b>Évaluation</b>comparer avant/après, surveiller l'eval_loss, tester hors sujet</div>
+    <div class="recap-card"><b>Partage</b>push_to_hub() + Model Card documentée = livrable complet</div>
+  </div>
+</section>
+
+<!-- 45. CTA FINAL -->
+<section class="slide slide-cta">
+  <h2>Merci.</h2>
+  <p>Des questions ? Contactez-moi directement.</p>
+  <div class="cta-links">
+    <a href="mailto:hello@dhcompany.pro">hello@dhcompany.pro</a>
+    <a href="https://dhcompany.pro">dhcompany.pro</a>
+    <a href="https://ia4africa.org">ia4africa.org</a>
+  </div>
+  <div class="cta-socials">@DigitalMaker237 sur LinkedIn &amp; X</div>
+</section>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  counter.textContent = '1 / ' + slides.length;
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides[current].classList.add('active');
+    progressBar.style.width = ((current + 1) / slides.length * 100) + '%';
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goTo(current + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goTo(current - 1);
+  });
+
+  document.getElementById('next-btn').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(current - 1));
+
+  let xStart = null;
+  document.addEventListener('touchstart', e => { xStart = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    if (xStart === null) return;
+    const diff = xStart - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) diff > 0 ? goTo(current + 1) : goTo(current - 1);
+    xStart = null;
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>

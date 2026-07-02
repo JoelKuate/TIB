@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Fiche d'exercice à rendre — saucedemo.com — 20 user stories</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    background: #f3f6fa;
+    color: #1a1a2e;
+    font-size: 15px;
+    line-height: 1.6;
+    padding-bottom: 90px; /* place pour la barre d'export sticky */
+  }
+
+  /* COVER */
+  .cover { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); color: white; padding: 48px 48px 36px; }
+  .cover .badge {
+    display: inline-block; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px; padding: 4px 16px; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px;
+  }
+  .cover h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+  .cover .url { color: #7ec8e3; font-size: 16px; margin-bottom: 22px; }
+  .cover-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 5px 14px; font-size: 12px; }
+
+  /* IDENTITÉ TESTEUR */
+  .identity { margin: 24px 32px; background: white; border-radius: 12px; padding: 20px 26px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .identity label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .5px; display:block; margin-bottom: 4px; }
+  .identity input[type="text"], .identity input[type="date"] {
+    border: 1px solid #dde3f0; border-radius: 6px; padding: 8px 10px; font-size: 14px; font-family: Calibri, Arial, sans-serif; min-width: 220px;
+  }
+  .identity .save-status { margin-left: auto; font-size: 12px; color: #06a06e; display:flex; align-items:center; gap:6px; }
+  .identity .save-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #06d6a0; }
+
+  /* INSTRUCTIONS */
+  .instructions { margin: 0 32px 24px; background: white; border-radius: 12px; padding: 24px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .instructions h2 { font-size: 17px; font-weight: 700; color: #0f3460; margin-bottom: 12px; }
+  .instructions ol { margin-left: 20px; }
+  .instructions li { margin-bottom: 8px; font-size: 14px; color: #333; }
+  .instructions .warn {
+    margin-top: 14px; background: #fffbe6; border-left: 3px solid #f9c74f; border-radius: 0 6px 6px 0;
+    padding: 10px 14px; font-size: 13px; color: #5a4200;
+  }
+  .instructions .warn strong { color: #b07800; }
+  .instructions .corrige {
+    margin-top: 10px; background: #eef2ff; border-left: 3px solid #4361ee; border-radius: 0 6px 6px 0;
+    padding: 10px 14px; font-size: 13px; color: #2b3a8f;
+  }
+
+  /* CREDENTIALS */
+  .creds { margin: 0 32px 28px; background: #eef2ff; border: 1px solid #d7deff; border-radius: 12px; padding: 18px 26px; }
+  .creds h2 { font-size: 14px; color: #0f3460; margin-bottom: 10px; }
+  .creds table { width: 100%; border-collapse: collapse; }
+  .creds th { text-align: left; font-size: 11px; color: #4361ee; text-transform: uppercase; letter-spacing: .6px; padding: 4px 10px 6px 0; }
+  .creds td { font-size: 13px; padding: 4px 10px 4px 0; font-family: 'Courier New', monospace; }
+  .creds td.desc { font-family: Calibri, Arial, sans-serif; color: #555; }
+
+  /* SCENARIO SECTION */
+  .scenario-title { margin: 0 32px; display: flex; align-items: center; gap: 12px; margin-top: 30px; }
+  .scenario-title h2 { font-size: 21px; font-weight: 700; color: #0f3460; }
+  .scenario-title .sc-badge { background: #0f3460; color: white; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
+  .sc-desc { margin: 6px 32px 18px; font-size: 13px; color: #666; }
+
+  /* STEPS */
+  .steps-wrap { margin: 0 32px 32px; display: flex; flex-direction: column; gap: 0; }
+  .step {
+    background: white; border-radius: 0; border-left: 4px solid #ccc; border-bottom: 1px solid #eef;
+    display: grid; grid-template-columns: 56px 1fr; overflow: hidden;
+  }
+  .step:first-child { border-radius: 12px 12px 0 0; }
+  .step:last-child { border-radius: 0 0 12px 12px; border-bottom: none; }
+  .step.action { border-left-color: #4361ee; }
+  .step.assert { border-left-color: #06d6a0; }
+  .step.input  { border-left-color: #f77f00; }
+  .step.nav    { border-left-color: #7b2d8b; }
+
+  .step-num { display: flex; align-items: flex-start; justify-content: center; padding: 18px 0 0; font-size: 11px; font-weight: 700; color: #aaa; }
+  .step.action .step-num { color: #4361ee; }
+  .step.assert .step-num { color: #048a64; }
+  .step.input  .step-num { color: #c66000; }
+  .step.nav    .step-num { color: #7b2d8b; }
+
+  .step-body { padding: 16px 20px 18px 10px; }
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .step-type { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; border-radius: 10px; padding: 2px 8px; }
+  .step.action .step-type { background: #e8ecff; color: #4361ee; }
+  .step.assert .step-type { background: #e0f7ef; color: #048a64; }
+  .step.input  .step-type { background: #fff0e0; color: #c66000; }
+  .step.nav    .step-type { background: #f3e8f7; color: #7b2d8b; }
+  .step.negatif .step-type { background: #fde3e3; color: #c0392b; }
+  .step-title { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+
+  /* USER STORY (donnée, non modifiable) */
+  .user-story { margin: 2px 0 8px; background: #fff8e8; border: 1px dashed #eac25a; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #5c4300; line-height: 1.55; }
+  .user-story .us-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #b07800; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .user-story .us-label::before { content: '👤'; font-size: 11px; }
+  .user-story strong { color: #8a5a00; }
+
+  .acceptance { margin: 0 0 10px; background: #f3f6fa; border-radius: 6px; padding: 8px 12px; font-size: 12.5px; color: #444; }
+  .acceptance .ac-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; font-weight: 700; margin-bottom: 3px; }
+
+  /* CHAMPS À REMPLIR */
+  .field-group { margin-top: 10px; }
+  .field-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: #7b2d8b; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+  }
+  .field-label.script { color: #4361ee; }
+  .field-label.report { color: #048a64; }
+  textarea {
+    width: 100%; font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.55;
+    border: 1.5px solid #dde3f0; border-radius: 8px; padding: 10px 12px; resize: vertical;
+    background: #fafbfd; color: #1a1a2e;
+  }
+  textarea:focus { outline: none; border-color: #4361ee; background: #ffffff; box-shadow: 0 0 0 3px rgba(67,97,238,0.12); }
+  textarea.prompt-field { min-height: 60px; }
+  textarea.script-field { min-height: 110px; }
+  textarea.obs-field { min-height: 44px; font-family: Calibri, Arial, sans-serif; }
+  textarea::placeholder { color: #b3bacb; font-style: italic; }
+
+  .status-row { display: flex; align-items: center; gap: 18px; margin-top: 8px; flex-wrap: wrap; }
+  .status-opt { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; padding: 5px 12px; border-radius: 20px; border: 1.5px solid #dde3f0; }
+  .status-opt input { accent-color: #06d6a0; }
+  .status-opt.fail input { accent-color: #c0392b; }
+
+  .tip { margin-top: 8px; background: #fffbe6; border-left: 3px solid #f9c74f; border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: 12px; color: #5a4200; }
+  .tip strong { color: #b07800; }
+
+  .sc-sep { margin: 36px 32px 0; border: none; border-top: 2px dashed #dde3f0; }
+
+  /* BARRE D'EXPORT STICKY */
+  .export-bar {
+    position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a2e; color: white;
+    padding: 14px 32px; display: flex; align-items: center; gap: 16px; z-index: 200;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  }
+  .export-bar .info { font-size: 12.5px; color: #b8c4dd; flex: 1; }
+  .export-bar button {
+    background: #06d6a0; color: #063d2c; border: none; border-radius: 8px; padding: 11px 22px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: .2s;
+  }
+  .export-bar button:hover { background: #08f0b3; transform: translateY(-1px); }
+  .export-bar button.reset { background: transparent; color: #f2a; color: #ff8b8b; border: 1px solid #4a3050; font-weight: 500; }
+  .export-bar button.reset:hover { background: rgba(255,255,255,0.06); }
+
+  @media print {
+    body { background: white; padding-bottom: 0; }
+    .export-bar { display: none; }
+    .concept, .instructions, .creds, .steps-wrap { margin: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="badge">Fiche d'exercice à rendre · Testeurs débutants · Claude Code</div>
+  <h1>Tester saucedemo.com — 20 user stories à réaliser vous-même</h1>
+  <div class="url">🌐 https://www.saucedemo.com/</div>
+  <div class="cover-pills">
+    <span class="pill">✍️ Vous écrivez vos propres prompts</span>
+    <span class="pill">💻 Vous rendez le script Playwright obtenu</span>
+    <span class="pill">📋 Vous rendez le rapport de test</span>
+    <span class="pill">💾 Sauvegarde automatique dans ce navigateur</span>
+  </div>
+</div>
+
+<!-- IDENTITÉ -->
+<div class="identity">
+  <div>
+    <label for="student-name">Nom du testeur</label>
+    <input type="text" id="student-name" placeholder="Prénom Nom">
+  </div>
+  <div>
+    <label for="student-date">Date</label>
+    <input type="date" id="student-date">
+  </div>
+  <div class="save-status"><span class="dot"></span> <span id="save-indicator">Vos réponses sont sauvegardées automatiquement</span></div>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="instructions">
+  <h2>📝 Comment utiliser cette fiche</h2>
+  <ol>
+    <li>Pour chacune des 20 user stories ci-dessous, lisez le <strong>critère d'acceptation</strong> (ce qui doit être vrai une fois le test réussi).</li>
+    <li>Rédigez <strong>vous-même</strong>, dans vos propres mots, le prompt que vous donneriez à Claude Code pour obtenir ce test — champ "✍️ Votre prompt".</li>
+    <li>Donnez ce prompt à Claude Code, laissez-le écrire et exécuter le test.</li>
+    <li>Copiez-collez le code du test qu'il a généré dans le champ "💻 Script Playwright obtenu".</li>
+    <li>Cochez le résultat (✅ Passé / ❌ Échoué) et notez une observation dans "📋 Rapport".</li>
+    <li>Une fois les 20 cas traités, cliquez sur <strong>"Exporter mon rendu"</strong> en bas de page pour télécharger votre fiche complétée.</li>
+  </ol>
+  <div class="warn"><strong>💡 Vous êtes libre de la formulation :</strong> il n'y a pas un seul bon prompt. L'objectif est d'apprendre à traduire un besoin (la user story) en instruction claire pour un agent de test — pas de deviner une phrase "attendue".</div>
+  <div class="corrige">📘 Un corrigé de référence existe (<code>EXERCICE-CLAUDE-CODE-SAUCEDEMO-20-ETAPES.html</code>) avec un prompt et un code déjà vérifiés pour chaque cas. Consultez-le <strong>après</strong> avoir essayé par vous-même, pour comparer votre approche — pas avant.</div>
+</div>
+
+<!-- CREDENTIALS -->
+<div class="creds">
+  <h2>🔑 Comptes de test saucedemo.com</h2>
+  <table>
+    <tr><th>Identifiant</th><th>Mot de passe</th><th>Comportement</th></tr>
+    <tr><td>standard_user</td><td>secret_sauce</td><td class="desc">Compte normal, tout fonctionne</td></tr>
+    <tr><td>locked_out_user</td><td>secret_sauce</td><td class="desc">Compte volontairement bloqué (message d'erreur)</td></tr>
+    <tr><td>problem_user</td><td>secret_sauce</td><td class="desc">Compte volontairement buggé (images produits cassées)</td></tr>
+  </table>
+</div>
+
+<!-- ══════════ GROUPE A — AUTHENTIFICATION ══════════ -->
+<div class="scenario-title"><h2>Groupe A — Authentification</h2><span class="sc-badge">Cas 01 à 05</span></div>
+<p class="sc-desc">Sans connexion, aucun autre scénario n'est atteignable. 3 des 5 cas sont volontairement des comportements d'erreur attendus.</p>
+
+<div class="steps-wrap" id="cases-A"></div>
+
+<!-- ══════════ GROUPE B — CATALOGUE ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:26px;"><h2>Groupe B — Catalogue produits</h2><span class="sc-badge">Cas 06 à 08</span></div>
+<p class="sc-desc">Un bon test vérifie mathématiquement qu'un tri est réellement appliqué — pas juste "visuellement".</p>
+
+<div class="steps-wrap" id="cases-B"></div>
+
+<!-- ══════════ GROUPE C — PANIER ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:26px;"><h2>Groupe C — Panier</h2><span class="sc-badge">Cas 09 à 13</span></div>
+<p class="sc-desc">Le cœur du parcours e-commerce : ajouter, retirer, vérifier le contenu, réinitialiser.</p>
+
+<div class="steps-wrap" id="cases-C"></div>
+
+<!-- ══════════ GROUPE D — FICHE PRODUIT ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:26px;"><h2>Groupe D — Fiche produit</h2><span class="sc-badge">Cas 14 à 15</span></div>
+<p class="sc-desc">Vérifie la cohérence entre le catalogue et la fiche détaillée d'un produit.</p>
+
+<div class="steps-wrap" id="cases-D"></div>
+
+<!-- ══════════ GROUPE E — CHECKOUT ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:26px;"><h2>Groupe E — Checkout</h2><span class="sc-badge">Cas 16 à 19</span></div>
+<p class="sc-desc">Le tunnel de commande complet, de la validation du formulaire jusqu'à la confirmation.</p>
+
+<div class="steps-wrap" id="cases-E"></div>
+
+<!-- ══════════ GROUPE F — CAS AVANCÉ ══════════ -->
+<hr class="sc-sep">
+<div class="scenario-title" style="margin-top:26px;"><h2>Groupe F — Cas avancé : régression visuelle</h2><span class="sc-badge">Cas 20</span></div>
+<p class="sc-desc">Un cas plus subtil : documenter un bug connu du site sans casser le tableau vert de la suite.</p>
+
+<div class="steps-wrap" id="cases-F"></div>
+
+<!-- BARRE D'EXPORT -->
+<div class="export-bar">
+  <div class="info">💾 Sauvegarde locale automatique dans ce navigateur — pensez tout de même à exporter régulièrement.</div>
+  <button class="reset" id="reset-btn">Réinitialiser la fiche</button>
+  <button id="export-btn">📥 Exporter mon rendu (.md)</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Données des 20 cas : type CSS, titre, user story, critère d'acceptation
+// ═══════════════════════════════════════════════════════════════════
+const GROUPS = {
+  A: [
+    { n: '01', type: 'nav', title: 'Connexion réussie avec un utilisateur standard',
+      story: "En tant que <strong>client inscrit</strong>, je veux <strong>me connecter avec des identifiants valides</strong>, afin de <strong>pouvoir accéder à mon catalogue de produits</strong>.",
+      accept: "Étant donné standard_user / secret_sauce, quand je me connecte, alors j'arrive sur inventory.html avec le catalogue visible." },
+    { n: '02', type: 'negatif assert', title: 'Refus de connexion si les champs sont vides',
+      story: "En tant que <strong>visiteur</strong>, je veux <strong>être averti si je tente de me connecter sans remplir les champs</strong>, afin de <strong>comprendre pourquoi je ne peux pas continuer</strong>.",
+      accept: "Étant donné un formulaire vide, quand je clique sur connexion, alors un message d'erreur mentionnant \"Username is required\" s'affiche." },
+    { n: '03', type: 'negatif assert', title: 'Refus de connexion avec un mauvais mot de passe',
+      story: "En tant que <strong>visiteur</strong>, je veux <strong>être informé clairement si mon mot de passe est incorrect</strong>, afin de <strong>pouvoir corriger ma saisie</strong>.",
+      accept: "Étant donné un mauvais mot de passe, quand je me connecte, alors un message d'erreur indique que les identifiants sont invalides." },
+    { n: '04', type: 'negatif assert', title: 'Connexion bloquée pour un utilisateur désactivé',
+      story: "En tant que <strong>gestionnaire du site</strong>, je veux <strong>qu'un compte désactivé ne puisse pas se connecter</strong>, afin de <strong>protéger les comptes suspendus</strong>.",
+      accept: "Étant donné locked_out_user, quand je tente de me connecter, alors un message de blocage s'affiche et je reste sur la page de connexion." },
+    { n: '05', type: 'nav', title: 'Déconnexion via le menu',
+      story: "En tant que <strong>client connecté</strong>, je veux <strong>pouvoir me déconnecter facilement</strong>, afin de <strong>sécuriser mon compte sur un poste partagé</strong>.",
+      accept: "Étant donné une session active, quand je clique sur \"Logout\" dans le menu, alors je reviens à l'écran de connexion." },
+  ],
+  B: [
+    { n: '06', type: 'assert', title: 'Le catalogue affiche 6 produits complets',
+      story: "En tant que <strong>client</strong>, je veux <strong>voir tous les produits disponibles avec leur nom, prix et image</strong>, afin de <strong>faire mon choix facilement</strong>.",
+      accept: "Étant donné un catalogue chargé, alors il affiche exactement 6 produits, chacun avec nom, prix et image." },
+    { n: '07', type: 'assert', title: 'Le tri par prix croissant réordonne réellement', badge:'ok',
+      story: "En tant que <strong>client</strong>, je veux <strong>trier les produits du moins cher au plus cher</strong>, afin de <strong>trouver rapidement les meilleures affaires</strong>.",
+      accept: "Étant donné le tri \"Price (low to high)\" sélectionné, alors les prix affichés sont réellement classés du plus petit au plus grand (à vérifier par calcul, pas juste visuellement)." },
+    { n: '08', type: 'assert', title: 'Le tri par nom Z→A réordonne réellement',
+      story: "En tant que <strong>client</strong>, je veux <strong>trier les produits par nom de Z à A</strong>, afin de <strong>parcourir le catalogue dans l'ordre qui me convient</strong>.",
+      accept: "Étant donné le tri \"Name (Z to A)\" sélectionné, alors les noms affichés sont réellement classés en ordre alphabétique inversé." },
+  ],
+  C: [
+    { n: '09', type: 'action', title: 'Ajouter un produit met le badge à 1',
+      story: "En tant que <strong>client</strong>, je veux <strong>ajouter un produit à mon panier</strong>, afin de <strong>pouvoir l'acheter plus tard</strong>.",
+      accept: "Étant donné un produit ajouté au panier, alors le badge affiche \"1\" et le bouton devient \"Remove\"." },
+    { n: '10', type: 'action', title: 'Ajouter 3 produits met le badge à 3',
+      story: "En tant que <strong>client</strong>, je veux <strong>ajouter plusieurs produits à mon panier</strong>, afin de <strong>préparer une commande groupée</strong>.",
+      accept: "Étant donné 3 produits ajoutés, alors le badge affiche \"3\"." },
+    { n: '11', type: 'action', title: 'Retirer un produit depuis le catalogue fait disparaître le badge',
+      story: "En tant que <strong>client</strong>, je veux <strong>retirer un produit du panier directement depuis le catalogue</strong>, afin de <strong>corriger une erreur sans changer de page</strong>.",
+      accept: "Étant donné un produit dans le panier, quand je clique sur \"Remove\" depuis le catalogue, alors le badge disparaît complètement." },
+    { n: '12', type: 'assert', title: 'Le panier affiche le bon nom, prix et quantité',
+      story: "En tant que <strong>client</strong>, je veux <strong>que mon panier affiche exactement ce que j'ai choisi (nom, prix, quantité)</strong>, afin de <strong>avoir confiance dans ma commande avant de payer</strong>.",
+      accept: "Étant donné un produit ajouté, quand j'ouvre le panier, alors le nom, le prix et la quantité affichés correspondent à ceux du catalogue." },
+    { n: '13', type: 'action', title: "Réinitialiser l'état de l'application vide le panier",
+      story: "En tant que <strong>client</strong>, je veux <strong>pouvoir réinitialiser mon panier en un clic</strong>, afin de <strong>recommencer mes achats à zéro si je me trompe</strong>.",
+      accept: "Étant donné un produit dans le panier, quand je clique sur \"Reset App State\", alors le panier est vidé." },
+  ],
+  D: [
+    { n: '14', type: 'assert', title: 'La fiche produit reprend le même nom, prix et description',
+      story: "En tant que <strong>client</strong>, je veux <strong>consulter le détail complet d'un produit</strong>, afin de <strong>vérifier les informations avant de l'acheter</strong>.",
+      accept: "Étant donné un produit du catalogue, quand j'ouvre sa fiche, alors le nom, le prix, la description et le bouton d'achat sont visibles et cohérents avec le catalogue." },
+    { n: '15', type: 'nav', title: '"Back to products" ramène bien vers le catalogue complet',
+      story: "En tant que <strong>client</strong>, je veux <strong>revenir facilement au catalogue depuis une fiche produit</strong>, afin de <strong>continuer mes achats sans perdre de temps</strong>.",
+      accept: "Étant donné une fiche produit ouverte, quand je clique sur \"Back to products\", alors je reviens au catalogue complet (6 produits)." },
+  ],
+  E: [
+    { n: '16', type: 'negatif assert', title: 'Le formulaire de livraison vide affiche une erreur',
+      story: "En tant que <strong>client</strong>, je veux <strong>être bloqué si je tente de valider une livraison sans mes coordonnées</strong>, afin de <strong>éviter une commande mal adressée</strong>.",
+      accept: "Étant donné un formulaire de livraison vide, quand je clique sur \"Continue\", alors un message d'erreur \"First Name is required\" s'affiche." },
+    { n: '17', type: 'input', title: 'Un formulaire valide passe à l\'étape "Overview"',
+      story: "En tant que <strong>client</strong>, je veux <strong>renseigner mes coordonnées de livraison et avancer dans ma commande</strong>, afin de <strong>finaliser mon achat</strong>.",
+      accept: "Étant donné un formulaire de livraison rempli, quand je clique sur \"Continue\", alors j'arrive à l'étape \"Overview\" avec le récapitulatif visible." },
+    { n: '18', type: 'assert', title: 'Le récapitulatif affiche le bon sous-total, taxe et total',
+      story: "En tant que <strong>client</strong>, je veux <strong>voir le détail exact de ce que je vais payer (sous-total, taxe, total)</strong>, afin de <strong>valider ma commande en toute confiance</strong>.",
+      accept: "Étant donné l'étape \"Overview\" affichée pour un Sauce Labs Backpack à 29.99 $, alors le sous-total, la taxe (8%) et le total correspondent exactement au calcul attendu." },
+    { n: '19', type: 'action', title: 'Finaliser la commande affiche le message de confirmation',
+      story: "En tant que <strong>client</strong>, je veux <strong>recevoir une confirmation claire une fois ma commande finalisée</strong>, afin de <strong>être rassuré que mon achat a bien été pris en compte</strong>.",
+      accept: "Étant donné une commande à l'étape \"Overview\", quand je clique sur \"Finish\", alors un message \"Thank you for your order!\" s'affiche." },
+  ],
+  F: [
+    { n: '20', type: 'assert', title: 'Détecter que les images produits sont bien distinctes (et documenter le cas où elles ne le sont pas)',
+      story: "En tant que <strong>responsable qualité</strong>, je veux <strong>détecter si les images produits sont correctement affichées (et documenter les cas où ce n'est pas le cas)</strong>, afin de <strong>garantir la fiabilité visuelle du catalogue</strong>.",
+      accept: "Étant donné standard_user, les 6 images du catalogue ont des sources différentes. Étant donné problem_user, ce même contrôle échoue (bug connu du site, à documenter sans casser la suite)." },
+  ],
+};
+
+const TYPE_LABELS = {
+  'nav': 'Navigation', 'action': 'Action', 'assert': 'Assertion', 'input': 'Saisie', 'negatif assert': 'Cas négatif'
+};
+
+function renderCase(c) {
+  const wrap = document.createElement('div');
+  wrap.className = 'step ' + c.type;
+  wrap.innerHTML = `
+    <div class="step-num">${c.n}</div>
+    <div class="step-body">
+      <div class="step-header"><span class="step-type">${TYPE_LABELS[c.type]}</span><span class="step-title">${c.title}</span></div>
+      <div class="user-story"><div class="us-label">User Story</div>${c.story}</div>
+      <div class="acceptance"><div class="ac-label">Critère d'acceptation</div>${c.accept}</div>
+
+      <div class="field-group">
+        <div class="field-label">✍️ Votre prompt (à donner à Claude Code)</div>
+        <textarea class="prompt-field" id="p-${c.n}" placeholder="Écrivez ici, dans vos propres mots, l'instruction que vous donneriez à Claude Code pour ce cas..."></textarea>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label script">💻 Script Playwright obtenu (collez le code généré)</div>
+        <textarea class="script-field" id="s-${c.n}" placeholder="Collez ici le code .spec.ts que Claude Code a écrit et exécuté pour vous..."></textarea>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label report">📋 Rapport de test</div>
+        <div class="status-row">
+          <label class="status-opt"><input type="radio" name="st-${c.n}" value="pass"> ✅ Passé</label>
+          <label class="status-opt fail"><input type="radio" name="st-${c.n}" value="fail"> ❌ Échoué</label>
+        </div>
+        <textarea class="obs-field" id="o-${c.n}" placeholder="Observation : qu'avez-vous constaté en exécutant le test ?" style="margin-top:8px;"></textarea>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+Object.keys(GROUPS).forEach(g => {
+  const container = document.getElementById('cases-' + g);
+  GROUPS[g].forEach(c => container.appendChild(renderCase(c)));
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Sauvegarde automatique locale (localStorage)
+// ═══════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'exercice-saucedemo-rendu-v1';
+const ALL_CASES = Object.values(GROUPS).flat();
+
+function collectFieldIds() {
+  const ids = ['student-name', 'student-date'];
+  ALL_CASES.forEach(c => ids.push('p-' + c.n, 's-' + c.n, 'o-' + c.n));
+  return ids;
+}
+
+function saveState() {
+  const data = {};
+  collectFieldIds().forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  ALL_CASES.forEach(c => {
+    const checked = document.querySelector(`input[name="st-${c.n}"]:checked`);
+    data['st-' + c.n] = checked ? checked.value : '';
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const ind = document.getElementById('save-indicator');
+  ind.textContent = 'Sauvegardé à ' + new Date().toLocaleTimeString('fr-BE');
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  const data = JSON.parse(raw);
+  collectFieldIds().forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) el.value = data[id];
+  });
+  ALL_CASES.forEach(c => {
+    const val = data['st-' + c.n];
+    if (val) {
+      const radio = document.querySelector(`input[name="st-${c.n}"][value="${val}"]`);
+      if (radio) radio.checked = true;
+    }
+  });
+}
+
+document.addEventListener('input', saveState);
+document.addEventListener('change', saveState);
+loadState();
+
+// ═══════════════════════════════════════════════════════════════════
+// Export du rendu en fichier Markdown téléchargeable
+// ═══════════════════════════════════════════════════════════════════
+document.getElementById('export-btn').addEventListener('click', () => {
+  const name = document.getElementById('student-name').value || 'Testeur';
+  const date = document.getElementById('student-date').value || new Date().toISOString().slice(0, 10);
+
+  let md = `# Rendu d'exercice — saucedemo.com (20 user stories)\n\n`;
+  md += `**Testeur :** ${name}  \n**Date :** ${date}\n\n---\n\n`;
+
+  let passed = 0, failed = 0, empty = 0;
+  ALL_CASES.forEach(c => {
+    const status = document.querySelector(`input[name="st-${c.n}"]:checked`);
+    if (!status) empty++;
+    else if (status.value === 'pass') passed++;
+    else failed++;
+  });
+  md += `## Résumé\n\n| Testés | ✅ Passés | ❌ Échoués | Non renseignés |\n|---|---|---|---|\n`;
+  md += `| ${ALL_CASES.length} | ${passed} | ${failed} | ${empty} |\n\n---\n\n`;
+
+  const groupNames = { A: 'Authentification', B: 'Catalogue', C: 'Panier', D: 'Fiche produit', E: 'Checkout', F: 'Cas avancé' };
+  Object.keys(GROUPS).forEach(g => {
+    md += `## Groupe ${g} — ${groupNames[g]}\n\n`;
+    GROUPS[g].forEach(c => {
+      const prompt = document.getElementById('p-' + c.n).value.trim() || '_(non renseigné)_';
+      const script = document.getElementById('s-' + c.n).value.trim() || '_(non renseigné)_';
+      const obs = document.getElementById('o-' + c.n).value.trim() || '_(aucune observation)_';
+      const status = document.querySelector(`input[name="st-${c.n}"]:checked`);
+      const statusLabel = status ? (status.value === 'pass' ? '✅ PASSED' : '❌ FAILED') : '⬜ NON TESTÉ';
+
+      md += `### Cas ${c.n} — ${c.title}\n\n`;
+      md += `**User Story :** ${c.story.replace(/<\/?strong>/g, '**')}\n\n`;
+      md += `**Critère d'acceptation :** ${c.accept}\n\n`;
+      md += `**Statut :** ${statusLabel}\n\n`;
+      md += `**Mon prompt :**\n\n\`\`\`\n${prompt}\n\`\`\`\n\n`;
+      md += `**Script Playwright obtenu :**\n\n\`\`\`typescript\n${script}\n\`\`\`\n\n`;
+      md += `**Observation :** ${obs}\n\n---\n\n`;
+    });
+  });
+
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  a.href = url;
+  a.download = `rendu-exercice-saucedemo-${safeName || 'testeur'}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Effacer toutes vos réponses sur cette fiche ? Cette action est irréversible.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+});
+</script>
+
+</body>
+</html>
